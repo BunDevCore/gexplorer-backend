@@ -8,7 +8,6 @@ public class GExplorerContext : IdentityDbContext<User, IdentityRole<Guid>, Guid
 {
     public GExplorerContext(DbContextOptions<GExplorerContext> options) : base(options) {}
 
-    public DbSet<User> Users { get; set; }
     public DbSet<Trip> Trips { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
