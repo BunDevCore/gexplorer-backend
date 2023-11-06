@@ -11,13 +11,15 @@ namespace GdanskExplorer.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AlterColumn<float>(
+            migrationBuilder.DropColumn(
+                name: "Area",
+                table: "Trips");
+            
+            migrationBuilder.AddColumn<float>(
                 name: "Area",
                 table: "Trips",
                 type: "real",
-                nullable: false,
-                oldClrType: typeof(MultiPolygon),
-                oldType: "geometry");
+                nullable: false);
 
             migrationBuilder.AddColumn<float>(
                 name: "Length",

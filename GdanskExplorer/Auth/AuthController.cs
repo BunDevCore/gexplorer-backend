@@ -19,9 +19,9 @@ public partial class AuthController : ControllerBase
     
     private readonly IConfiguration _config;
     private readonly UserManager<User> _userManager;
-    private readonly RoleManager<IdentityRole> _roleManager;
+    private readonly RoleManager<IdentityRole<Guid>> _roleManager;
 
-    public AuthController(IConfiguration config, UserManager<User> userManager, RoleManager<IdentityRole> roleManager)
+    public AuthController(IConfiguration config, UserManager<User> userManager, RoleManager<IdentityRole<Guid>> roleManager)
     {
         _config = config;
         _userManager = userManager;
@@ -68,7 +68,7 @@ public partial class AuthController : ControllerBase
 
         var newUser = new User
         {
-            // Id = Guid.NewGuid(),
+            Id = Guid.NewGuid(),
             UserName = dto.UserName,
             Email = dto.Email,
         };
