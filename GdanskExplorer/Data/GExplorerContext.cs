@@ -26,5 +26,9 @@ public class GExplorerContext : IdentityDbContext<User, IdentityRole<Guid>, Guid
             .HasMany<Achievement>()
             .WithMany()
             .UsingEntity<AchievementGet>();
+
+        modelBuilder.Entity<User>()
+            .Property(x => x.JoinedAt)
+            .HasDefaultValueSql("now()");
     }
 }
