@@ -1,8 +1,10 @@
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace GdanskExplorer.Data;
 
-public class GExplorerContext : DbContext
+public class GExplorerContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
 {
     public GExplorerContext(DbContextOptions<GExplorerContext> options) : base(options) {}
 

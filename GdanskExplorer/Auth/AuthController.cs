@@ -68,7 +68,7 @@ public partial class AuthController : ControllerBase
 
         var newUser = new User
         {
-            Id = Guid.NewGuid(),
+            // Id = Guid.NewGuid(),
             UserName = dto.UserName,
             Email = dto.Email,
         };
