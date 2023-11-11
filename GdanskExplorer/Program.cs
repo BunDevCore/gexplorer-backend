@@ -1,8 +1,12 @@
 using System.Text;
+using DotSpatial.Projections;
+using GdanskExplorer;
 using GdanskExplorer.Data;
+using GdanskExplorer.Topology;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 
@@ -84,6 +88,17 @@ builder.Services.AddAuthentication(x =>
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JWTKey"]))
     };
 });
+
+// area calc configuration related stuff
+builder.Services.Configure<AreaCalculationOptions>(
+    builder.Configuration.GetSection(AreaCalculationOptions.SectionName));
+
+builder.Services.AddSingleton<DotSpatialReprojector>(isp =>
+    new DotSpatialReprojector(ProjectionInfo.FromEpsgCode(4326),
+    ProjectionInfo.FromEpsgCode(isp.GetRequiredService<IOptions<AreaCalculationOptions>>().Value.AreaSrid)));
+
+builder.Services.AddSingleton<GpxAreaExtractor>(isp => new GpxAreaExtractor(
+    isp.GetRequiredService<DotSpatialReprojector>(), isp.GetRequiredService<ILogger<GpxAreaExtractor>>()));
 
 var app = builder.Build();
 
