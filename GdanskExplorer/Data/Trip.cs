@@ -9,5 +9,5 @@ public class Trip
     public MultiPolygon Polygon { get; set; } = null!;
     public double Area { get; set; }
     public double Length { get; set; }
-    public DateTime UploadDate { get; set; }
+    public DateTime UploadTime { get; set; }
 }
