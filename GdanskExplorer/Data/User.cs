@@ -9,5 +9,9 @@ public class User : IdentityUser<Guid>
 
     public DateTime JoinedAt { get; set; }
     public List<Trip> Trips { get; set; } = new();
-    
+
+    public List<AchievementGet> AchievementGets { get; set; } = new();
+    public List<Achievement> Achievements { get; set; } = new();
+
+    public List<DistrictAreaCacheEntry> DistrictAreas { get; set; } = new();
 }

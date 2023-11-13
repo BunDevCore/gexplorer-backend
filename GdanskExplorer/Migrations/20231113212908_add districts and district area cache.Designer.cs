@@ -3,6 +3,7 @@ using System;
 using GdanskExplorer.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NetTopologySuite.Geometries;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
@@ -12,9 +13,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace GdanskExplorer.Migrations
 {
     [DbContext(typeof(GExplorerContext))]
-    partial class GExplorerContextModelSnapshot : ModelSnapshot
+    [Migration("20231113212908_add districts and district area cache")]
+    partial class adddistrictsanddistrictareacache
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -32,7 +35,7 @@ namespace GdanskExplorer.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Achievement", (string)null);
+                    b.ToTable("Achievement");
                 });
 
             modelBuilder.Entity("GdanskExplorer.Data.AchievementGet", b =>
@@ -50,7 +53,7 @@ namespace GdanskExplorer.Migrations
 
                     b.HasIndex("AchievementId");
 
-                    b.ToTable("AchievementGets", (string)null);
+                    b.ToTable("AchievementGets");
                 });
 
             modelBuilder.Entity("GdanskExplorer.Data.District", b =>
@@ -69,7 +72,7 @@ namespace GdanskExplorer.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Districts", (string)null);
+                    b.ToTable("Districts");
                 });
 
             modelBuilder.Entity("GdanskExplorer.Data.DistrictAreaCacheEntry", b =>
@@ -87,7 +90,7 @@ namespace GdanskExplorer.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("DistrictAreaCacheEntries", (string)null);
+                    b.ToTable("DistrictAreaCacheEntries");
                 });
 
             modelBuilder.Entity("GdanskExplorer.Data.Trip", b =>
@@ -116,7 +119,7 @@ namespace GdanskExplorer.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Trips", (string)null);
+                    b.ToTable("Trips");
                 });
 
             modelBuilder.Entity("GdanskExplorer.Data.User", b =>
