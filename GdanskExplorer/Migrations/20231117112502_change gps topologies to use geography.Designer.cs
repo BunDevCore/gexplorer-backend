@@ -3,6 +3,7 @@ using System;
 using GdanskExplorer.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NetTopologySuite.Geometries;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
@@ -12,9 +13,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace GdanskExplorer.Migrations
 {
     [DbContext(typeof(GExplorerContext))]
-    partial class GExplorerContextModelSnapshot : ModelSnapshot
+    [Migration("20231117112502_change gps topologies to use geography")]
+    partial class changegpstopologiestousegeography
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -103,14 +106,14 @@ namespace GdanskExplorer.Migrations
                         .IsRequired()
                         .HasColumnType("geography");
 
-                    b.Property<Polygon>("GpsPolygon")
+                    b.Property<MultiPolygon>("GpsPolygon")
                         .IsRequired()
                         .HasColumnType("geography");
 
                     b.Property<double>("Length")
                         .HasColumnType("double precision");
 
-                    b.Property<Polygon>("Polygon")
+                    b.Property<MultiPolygon>("Polygon")
                         .IsRequired()
                         .HasColumnType("geometry");
 

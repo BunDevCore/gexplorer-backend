@@ -85,7 +85,8 @@ builder.Services.AddAuthentication(x =>
         ValidateAudience = false,
         ValidateIssuer = false,
         ValidIssuer = "gexplorer-auth",
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JWTKey"]))
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JWTKey"] ??
+                                                                           throw new InvalidDataException("jwt key not configured")))
     };
 });
 
@@ -99,6 +100,9 @@ builder.Services.AddSingleton<DotSpatialReprojector>(isp =>
 
 builder.Services.AddSingleton<GpxAreaExtractor>(isp => new GpxAreaExtractor(
     isp.GetRequiredService<DotSpatialReprojector>(), isp.GetRequiredService<ILogger<GpxAreaExtractor>>()));
+
+builder.Services.AddAutoMapper(typeof(GExplorerAutoMapperProfile));
+
 
 var app = builder.Build();
 

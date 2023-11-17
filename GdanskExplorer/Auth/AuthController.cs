@@ -16,16 +16,21 @@ public partial class AuthController : ControllerBase
 {
     [GeneratedRegex("^[a-zA-Z0-9.-_]{4,30}$", RegexOptions.Singleline | RegexOptions.CultureInvariant)]
     private static partial Regex UsernameRegex();
-    
+
     private readonly IConfiguration _config;
     private readonly UserManager<User> _userManager;
+    private readonly GExplorerContext _db;
     private readonly RoleManager<IdentityRole<Guid>> _roleManager;
+    private readonly ILogger<AuthController> _log;
 
-    public AuthController(IConfiguration config, UserManager<User> userManager, RoleManager<IdentityRole<Guid>> roleManager)
+    public AuthController(IConfiguration config, UserManager<User> userManager,
+        RoleManager<IdentityRole<Guid>> roleManager, ILogger<AuthController> log, GExplorerContext db)
     {
         _config = config;
         _userManager = userManager;
         _roleManager = roleManager;
+        _log = log;
+        _db = db;
     }
 
     [HttpPost("login")]
@@ -33,19 +38,27 @@ public partial class AuthController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> Login([FromBody] LoginDto dto)
     {
+        _log.LogInformation("new login attempt for {User}", dto.UserName);
         if (!ModelState.IsValid)
         {
+            _log.LogDebug("bad model state");
             return BadRequest(ModelState);
         }
-        
+
         var user = await _userManager.FindByNameAsync(dto.UserName);
         if (user == null)
         {
+            _log.LogDebug("user is nonexistent");
             return BadRequest();
         }
 
-        if (!await _userManager.CheckPasswordAsync(user, dto.Password)) return BadRequest();
-        
+        if (!await _userManager.CheckPasswordAsync(user, dto.Password))
+        {
+            _log.LogInformation("failed login attempt for {User}", user.UserName);
+            user.AccessFailedCount += 1;
+            return BadRequest();
+        }
+
         var token = NewJwt(user);
         return Ok(token);
     }
@@ -63,7 +76,8 @@ public partial class AuthController : ControllerBase
 
         if (!UsernameRegex().IsMatch(dto.UserName))
         {
-            return BadRequest("Usernames can only consist of letters, numbers and .-_ and be between 4 and 30 characters");
+            return BadRequest(
+                "Usernames can only consist of letters, numbers and .-_ and be between 4 and 30 characters");
         }
 
         var newUser = new User
@@ -73,11 +87,11 @@ public partial class AuthController : ControllerBase
             Email = dto.Email,
         };
 
-        
+
         var result = await _userManager.CreateAsync(newUser, dto.Password);
-        
+
         var roleAddResult = await _userManager.AddToRoleAsync(newUser, "User");
-        
+
         if (result.Succeeded && roleAddResult.Succeeded)
         {
             return new OkObjectResult(NewJwt(newUser));
