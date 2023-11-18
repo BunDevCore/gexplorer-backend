@@ -13,14 +13,16 @@ public class GpxAreaExtractor
     private readonly GeometryFactory _gpsFactory = NtsGeometryServices.Instance.CreateGeometryFactory(4326);
     private readonly DotSpatialReprojector _reprojectBuffer;
     private readonly DotSpatialReprojector _reprojectCommon;
+    private readonly AreaCalculationOptions _options;
 
     public GpxAreaExtractor(AreaCalculationOptions options, ILogger<GpxAreaExtractor> log)
     {
         _log = log;
+        _options = options;
         _reprojectBuffer = new DotSpatialReprojector(ProjectionInfo.FromEpsgCode(4326),
-            ProjectionInfo.FromProj4String(options.BufferProj4));
+            ProjectionInfo.FromProj4String(_options.BufferProj4));
         _reprojectCommon = new DotSpatialReprojector(ProjectionInfo.FromEpsgCode(4326),
-            ProjectionInfo.FromEpsgCode(options.CommonAreaSrid));
+            ProjectionInfo.FromEpsgCode(_options.CommonAreaSrid));
     }
 
     public TripTopologyInfo[] ProcessGpx(Stream gpxContents)
@@ -43,7 +45,7 @@ public class GpxAreaExtractor
             bufferLinestring.Apply(_reprojectBuffer);
             _log.LogDebug("arealinestring length = {Length}", bufferLinestring.Length);
 
-            var bufferedPolygon = bufferLinestring.Buffer(7, EndCapStyle.Flat) as Polygon;
+            var bufferedPolygon = bufferLinestring.Buffer(_options.BufferRadius) as Polygon;
 
             _log.LogDebug("polygon is null? {isNull}", bufferedPolygon == null);
 
