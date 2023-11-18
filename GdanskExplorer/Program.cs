@@ -94,12 +94,12 @@ builder.Services.AddAuthentication(x =>
 builder.Services.Configure<AreaCalculationOptions>(
     builder.Configuration.GetSection(AreaCalculationOptions.SectionName));
 
-builder.Services.AddSingleton<DotSpatialReprojector>(isp =>
-    new DotSpatialReprojector(ProjectionInfo.FromEpsgCode(4326),
-    ProjectionInfo.FromProj4String(isp.GetRequiredService<IOptions<AreaCalculationOptions>>().Value.AreaSrid)));
+// builder.Services.AddSingleton<DotSpatialReprojector>(isp =>
+//     new DotSpatialReprojector(ProjectionInfo.FromEpsgCode(4326),
+//     ProjectionInfo.FromProj4String(isp.GetRequiredService<IOptions<AreaCalculationOptions>>().Value.AreaSrid)));
 
 builder.Services.AddSingleton<GpxAreaExtractor>(isp => new GpxAreaExtractor(
-    isp.GetRequiredService<DotSpatialReprojector>(), isp.GetRequiredService<ILogger<GpxAreaExtractor>>()));
+    isp.GetRequiredService<IOptions<AreaCalculationOptions>>().Value, isp.GetRequiredService<ILogger<GpxAreaExtractor>>()));
 
 builder.Services.AddAutoMapper(typeof(GExplorerAutoMapperProfile));
 

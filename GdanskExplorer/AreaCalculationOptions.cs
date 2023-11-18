@@ -4,6 +4,7 @@ public class AreaCalculationOptions
 {
     public const string SectionName = "AreaCalc";
 
-    public int AreaSrid { get; set; } = 6933;
+    public int CommonAreaSrid { get; set; } = 6933;
+    public string BufferProj4 { get; set; } = null!;
     public double BufferRadius { get; set; } = 7.0;
 }

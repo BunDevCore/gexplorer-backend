@@ -1,4 +1,5 @@
 using System.Xml;
+using DotSpatial.Projections;
 using NetTopologySuite;
 using NetTopologySuite.Geometries;
 using NetTopologySuite.IO;
@@ -8,16 +9,18 @@ namespace GdanskExplorer.Topology;
 
 public class GpxAreaExtractor
 {
-    private readonly DotSpatialReprojector _reproject;
     private readonly ILogger<GpxAreaExtractor> _log;
     private readonly GeometryFactory _gpsFactory = NtsGeometryServices.Instance.CreateGeometryFactory(4326);
-    private readonly GeometryFactory _areaFactory;
+    private readonly DotSpatialReprojector _reprojectBuffer;
+    private readonly DotSpatialReprojector _reprojectCommon;
 
-    public GpxAreaExtractor(DotSpatialReprojector reproject, ILogger<GpxAreaExtractor> log)
+    public GpxAreaExtractor(AreaCalculationOptions options, ILogger<GpxAreaExtractor> log)
     {
-        _reproject = reproject;
         _log = log;
-        _areaFactory = NtsGeometryServices.Instance.CreateGeometryFactory(reproject.DestSrid);
+        _reprojectBuffer = new DotSpatialReprojector(ProjectionInfo.FromEpsgCode(4326),
+            ProjectionInfo.FromProj4String(options.BufferProj4));
+        _reprojectCommon = new DotSpatialReprojector(ProjectionInfo.FromEpsgCode(4326),
+            ProjectionInfo.FromEpsgCode(options.CommonAreaSrid));
     }
 
     public TripTopologyInfo[] ProcessGpx(Stream gpxContents)
@@ -36,21 +39,29 @@ public class GpxAreaExtractor
             var gpsLinestring = _gpsFactory.CreateLineString(segment.Waypoints.Select(x =>
                 new Coordinate(x.Longitude, x.Latitude)).ToArray());
 
-            var areaLinestring = gpsLinestring.Copy();
-            areaLinestring.Apply(_reproject);
-            _log.LogDebug("arealinestring length = {Length}", areaLinestring.Length);
+            var bufferLinestring = gpsLinestring.Copy();
+            bufferLinestring.Apply(_reprojectBuffer);
+            _log.LogDebug("arealinestring length = {Length}", bufferLinestring.Length);
 
-            var areaPolygon = areaLinestring.Buffer(7, EndCapStyle.Flat) as Polygon;
+            var bufferedPolygon = bufferLinestring.Buffer(7, EndCapStyle.Flat) as Polygon;
 
-            _log.LogDebug("polygon is null? {isNull}", areaPolygon == null);
+            _log.LogDebug("polygon is null? {isNull}", bufferedPolygon == null);
 
-            var gpsPolygon = areaPolygon?.Copy() as Polygon;
-            gpsPolygon?.Apply(_reproject.Reversed());
+            var gpsPolygon = bufferedPolygon?.Copy() as Polygon;
+            gpsPolygon?.Apply(_reprojectBuffer.Reversed());
+
+            var areaPolygon = gpsPolygon?.Copy() as Polygon;
+            areaPolygon?.Apply(_reprojectCommon);
 
             _log.LogInformation("track segment processed");
 
             Console.WriteLine();
 
+            if (bufferedPolygon is null)
+            {
+                throw new InvalidOperationException("buffer polygon somehow ended up null");
+            }
+            
             if (areaPolygon is null)
             {
                 throw new InvalidOperationException("area polygon somehow ended up null");
