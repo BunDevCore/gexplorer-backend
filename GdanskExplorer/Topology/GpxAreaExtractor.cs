@@ -2,6 +2,7 @@ using System.Xml;
 using NetTopologySuite;
 using NetTopologySuite.Geometries;
 using NetTopologySuite.IO;
+using NetTopologySuite.Operation.Buffer;
 
 namespace GdanskExplorer.Topology;
 
@@ -33,12 +34,13 @@ public class GpxAreaExtractor
             _log.LogDebug("converting track segment ({numWaypoints} waypoints)", segment.Waypoints.Count);
             
             var gpsLinestring = _gpsFactory.CreateLineString(segment.Waypoints.Select(x =>
-                new Coordinate(x.Latitude, x.Longitude)).ToArray());
+                new Coordinate(x.Longitude, x.Latitude)).ToArray());
 
             var areaLinestring = gpsLinestring.Copy();
             areaLinestring.Apply(_reproject);
+            _log.LogDebug("arealinestring length = {Length}", areaLinestring.Length);
 
-            var areaPolygon = areaLinestring.Buffer(7) as Polygon;
+            var areaPolygon = areaLinestring.Buffer(7, EndCapStyle.Flat) as Polygon;
 
             _log.LogDebug("polygon is null? {isNull}", areaPolygon == null);
 

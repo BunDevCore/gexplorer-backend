@@ -12,12 +12,16 @@ public sealed class DotSpatialReprojector : NetTopologySuite.Geometries.ICoordin
     
     public double[] XY = new double[2];
     public double[] Z = new double[1];
+    public bool SwizzleOutput = false;
+    public bool SwizzleInput = false;
 
 
-    public DotSpatialReprojector(ProjectionInfo src, ProjectionInfo dest)
+    public DotSpatialReprojector(ProjectionInfo src, ProjectionInfo dest, bool swizzleInput = false, bool swizzleOutput = false)
     {
         _src = src;
         _dest = dest;
+        SwizzleInput = swizzleInput;
+        SwizzleOutput = swizzleOutput;
     }
     
     public DotSpatialReprojector Reversed()
@@ -25,17 +29,27 @@ public sealed class DotSpatialReprojector : NetTopologySuite.Geometries.ICoordin
         return new DotSpatialReprojector(_dest, _src);
     }
 
+    public DotSpatialReprojector OutputSwizzled()
+    {
+        return new DotSpatialReprojector(_src, _dest, SwizzleInput, !SwizzleOutput);
+    }
+    
+    public DotSpatialReprojector InputSwizzled()
+    {
+        return new DotSpatialReprojector(_src, _dest, !SwizzleInput, SwizzleOutput);
+    }
+
     public bool Done => false;
     public bool GeometryChanged => true;
     public void Filter(NetTopologySuite.Geometries.CoordinateSequence seq, int i)
     {
         
-        XY[0] = seq.GetX(i);
-        XY[1] = seq.GetY(i);
+        XY[0 + (SwizzleInput ? 1 : 0)] = seq.GetX(i);
+        XY[1 - (SwizzleInput ? 1 : 0)] = seq.GetY(i);
         Z[0] = seq.GetZ(i);
         ReprojectPoints(XY, Z, _src, _dest, 0, 1);
-        seq.SetX(i, XY[1]);
-        seq.SetY(i, XY[0]);
+        seq.SetX(i, XY[0 + (SwizzleOutput ? 1 : 0)]);
+        seq.SetY(i, XY[1 - (SwizzleOutput ? 1 : 0)]);
         seq.SetZ(i, Z[0]);
     }
 }

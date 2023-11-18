@@ -96,7 +96,7 @@ builder.Services.Configure<AreaCalculationOptions>(
 
 builder.Services.AddSingleton<DotSpatialReprojector>(isp =>
     new DotSpatialReprojector(ProjectionInfo.FromEpsgCode(4326),
-    ProjectionInfo.FromEpsgCode(isp.GetRequiredService<IOptions<AreaCalculationOptions>>().Value.AreaSrid)));
+    ProjectionInfo.FromProj4String(isp.GetRequiredService<IOptions<AreaCalculationOptions>>().Value.AreaSrid)));
 
 builder.Services.AddSingleton<GpxAreaExtractor>(isp => new GpxAreaExtractor(
     isp.GetRequiredService<DotSpatialReprojector>(), isp.GetRequiredService<ILogger<GpxAreaExtractor>>()));

@@ -2,6 +2,8 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GdanskExplorer", "GdanskExplorer\GdanskExplorer.csproj", "{D0441DE7-BB18-4F93-9A13-2E520BE305A4}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GdanskExplorer.Topology.Tests", "GdanskExplorer.Topology.Tests\GdanskExplorer.Topology.Tests.csproj", "{8BD048C6-B7CB-4BE0-B17B-3A30A452821E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -12,5 +14,9 @@ Global
 		{D0441DE7-BB18-4F93-9A13-2E520BE305A4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D0441DE7-BB18-4F93-9A13-2E520BE305A4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D0441DE7-BB18-4F93-9A13-2E520BE305A4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8BD048C6-B7CB-4BE0-B17B-3A30A452821E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8BD048C6-B7CB-4BE0-B17B-3A30A452821E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8BD048C6-B7CB-4BE0-B17B-3A30A452821E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8BD048C6-B7CB-4BE0-B17B-3A30A452821E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
