@@ -1,4 +1,5 @@
 using System.Xml;
+using AutoMapper;
 using GdanskExplorer.Data;
 using GdanskExplorer.Dtos;
 using GdanskExplorer.Topology;
@@ -22,18 +23,20 @@ public class TripController : ControllerBase
     private readonly GExplorerContext _db;
     private readonly UserManager<User> _userManager;
     private readonly GpxAreaExtractor _areaExtractor;
+    private readonly IMapper _mapper;
 
     public TripController(ILogger<TripController> logger, UserManager<User> userManager, GExplorerContext db,
-        GpxAreaExtractor areaExtractor)
+        GpxAreaExtractor areaExtractor, IMapper mapper)
     {
         _logger = logger;
         _userManager = userManager;
         _db = db;
         _areaExtractor = areaExtractor;
+        _mapper = mapper;
     }
 
     [HttpPost("new")]
-    public async Task<IActionResult> AddNewTrip([FromBody] NewTripDto newTrip)
+    public async Task<ActionResult<IEnumerable<TripReturnDto>>> AddNewTrip([FromBody] NewTripDto newTrip)
     {
         var user = await _userManager.GetUserAsync(User);
         if (user is null)
@@ -45,7 +48,7 @@ public class TripController : ControllerBase
             newTrip.User != user.Id &&
             !await _userManager.IsInRoleAsync(user, "Admin"))
         {
-            return Unauthorized("cannot add trip to another user");
+            return Forbid();
         }
 
         try
@@ -64,18 +67,17 @@ public class TripController : ControllerBase
                     Polygon = topology.AreaPolygon,
                     UploadTime = uploadTime,
                     Area = topology.AreaPolygon.Area,
-                    Length = -1, // not sure how to calculate it rn
+                    Length = topology.LocalLinestring.Length, 
                 }
-            );
+            ).ToList();
 
             await _db.AddRangeAsync(dbTrips);
             await _db.SaveChangesAsync();
+            return Ok(_mapper.Map<IEnumerable<TripReturnDto>>(dbTrips));
         }
         catch (XmlException e)
         {
             return BadRequest($"invalid GPX syntax: {e}");
         }
-
-        return Ok();
     }
 }

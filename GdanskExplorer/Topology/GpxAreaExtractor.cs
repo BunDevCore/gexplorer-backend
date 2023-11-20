@@ -41,7 +41,7 @@ public class GpxAreaExtractor
             var gpsLinestring = _gpsFactory.CreateLineString(segment.Waypoints.Select(x =>
                 new Coordinate(x.Longitude, x.Latitude)).ToArray());
 
-            var bufferLinestring = gpsLinestring.Copy();
+            var bufferLinestring = gpsLinestring.Copy() as LineString ?? throw new InvalidOperationException("buffer linestring is null");
             bufferLinestring.Apply(_reprojectBuffer);
             _log.LogDebug("arealinestring length = {Length}", bufferLinestring.Length);
 
@@ -74,7 +74,7 @@ public class GpxAreaExtractor
                 throw new InvalidOperationException("gps polygon somehow ended up null");
             }
             
-            return new TripTopologyInfo(gpsLinestring, gpsPolygon, areaPolygon);
+            return new TripTopologyInfo(gpsLinestring, gpsPolygon, areaPolygon, bufferLinestring);
         });
         
         return polygons.ToArray();
