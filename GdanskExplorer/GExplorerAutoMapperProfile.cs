@@ -11,5 +11,6 @@ public class GExplorerAutoMapperProfile : Profile
         ReplaceMemberName("UserName", "Username");
         CreateMap<User, UserReturnDto>();
         CreateMap<Trip, TripReturnDto>();
+        CreateMap<Trip, DetailedTripReturnDto>();
     }
 }

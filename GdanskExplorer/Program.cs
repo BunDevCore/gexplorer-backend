@@ -1,7 +1,10 @@
 using System.Text;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using DotSpatial.Projections;
 using GdanskExplorer;
 using GdanskExplorer.Data;
+using GdanskExplorer.Dtos;
 using GdanskExplorer.Topology;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
@@ -14,7 +17,13 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+        {
+            options.JsonSerializerOptions.Converters.Add(new GeometryJsonConverter());
+            options.JsonSerializerOptions.NumberHandling = JsonNumberHandling.AllowNamedFloatingPointLiterals;
+        }
+);
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>

@@ -6,6 +6,8 @@ using GdanskExplorer.Topology;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using NetTopologySuite.Geometries;
 
 namespace GdanskExplorer.Controllers;
 
@@ -80,4 +82,18 @@ public class TripController : ControllerBase
             return BadRequest($"invalid GPX syntax: {e}");
         }
     }
+
+    [HttpGet("id/{guid:guid}")]
+    public ActionResult<DetailedTripReturnDto> GetById([FromRoute] Guid guid)
+    {
+        var trip = _db.Trips.FirstOrDefault(x => x.Id.Equals(guid));
+
+        if (trip == null)
+        {
+            return NotFound();
+        }
+        
+        return Ok(_mapper.Map<DetailedTripReturnDto>(trip));
+    }
+    
 }
