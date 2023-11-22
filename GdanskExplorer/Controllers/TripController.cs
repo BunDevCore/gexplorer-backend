@@ -73,6 +73,13 @@ public class TripController : ControllerBase
                 }
             ).ToList();
 
+            var unifiedTripArea = tripTopologies.Aggregate(
+                MultiPolygon.Empty as Geometry,
+                (current, topologyInfo) =>
+                    current.Union(topologyInfo.AreaPolygon));
+
+            user.OverallArea = user.OverallArea.Union(unifiedTripArea).AsMultiPolygon();
+            
             await _db.AddRangeAsync(dbTrips);
             await _db.SaveChangesAsync();
             return Ok(_mapper.Map<IEnumerable<TripReturnDto>>(dbTrips));

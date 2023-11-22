@@ -41,9 +41,13 @@ public class GpxAreaExtractor
             var gpsLinestring = _gpsFactory.CreateLineString(segment.Waypoints.Select(x =>
                 new Coordinate(x.Longitude, x.Latitude)).ToArray());
 
-            var bufferLinestring = gpsLinestring.Copy() as LineString ?? throw new InvalidOperationException("buffer linestring is null");
-            bufferLinestring.Apply(_reprojectBuffer);
-            _log.LogDebug("arealinestring length = {Length}", bufferLinestring.Length);
+            var fullBufferLinestring = gpsLinestring.Copy() as LineString ?? throw new InvalidOperationException("buffer linestring is null");
+            fullBufferLinestring.Apply(_reprojectBuffer);
+
+            var bufferLinestring = SimplifyLinestring(fullBufferLinestring);
+
+            _log.LogDebug("post-simplification coordinates = {NumCoordinates}", bufferLinestring.Coordinates.Length);
+            _log.LogDebug("bufferlinestring length = {Length}", bufferLinestring.Length);
 
             var bufferedPolygon = bufferLinestring.Buffer(_options.BufferRadius) as Polygon;
 
@@ -78,5 +82,21 @@ public class GpxAreaExtractor
         });
         
         return polygons.ToArray();
+    }
+
+    private LineString SimplifyLinestring(LineString fullLinestring)
+    {
+        var newCoords = new List<Coordinate> { fullLinestring.Coordinates[0] };
+        foreach (var coord in fullLinestring.Coordinates.Skip(1))
+        {
+            var last = newCoords.Last();
+            var distanceSquared = (last.X - coord.X) * (last.X - coord.X) + (last.Y - coord.Y) * (last.Y - coord.Y);
+
+            if (distanceSquared > _options.SimplificationDistanceSquared)
+            {
+                newCoords.Add(coord);
+            }
+        }
+        return new LineString(newCoords.ToArray());
     }
 }
