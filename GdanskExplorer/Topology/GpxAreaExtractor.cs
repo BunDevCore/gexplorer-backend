@@ -3,7 +3,6 @@ using DotSpatial.Projections;
 using NetTopologySuite;
 using NetTopologySuite.Geometries;
 using NetTopologySuite.IO;
-using NetTopologySuite.Operation.Buffer;
 
 namespace GdanskExplorer.Topology;
 
