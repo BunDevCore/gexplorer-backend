@@ -35,7 +35,8 @@ public class DistrictController : ControllerBase
             var dbDistricts = fc.Select(f =>
                 new District
                 {
-                    Area = (Polygon)f.Geometry,
+                    Geometry = (Polygon)f.Geometry,
+                    Area = f.Geometry.Area,
                     Id = new Guid(),
                     Name = (string)f.Attributes["DZIELNICY"]
                 }
