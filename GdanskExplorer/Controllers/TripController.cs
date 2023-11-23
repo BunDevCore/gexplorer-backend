@@ -79,6 +79,7 @@ public class TripController : ControllerBase
                     current.Union(topologyInfo.AreaPolygon));
 
             user.OverallArea = user.OverallArea.Union(unifiedTripArea).AsMultiPolygon();
+            user.OverallAreaAmount = user.OverallArea.Area;
             
             await _db.AddRangeAsync(dbTrips);
             await _db.SaveChangesAsync();
