@@ -7,7 +7,7 @@ using NetTopologySuite.Geometries;
 using NetTopologySuite.IO;
 using Newtonsoft.Json;
 
-namespace GdanskExplorer;
+namespace GdanskExplorer.Controllers;
 
 [Authorize(Roles = "Admin")]
 [Route("[controller]")]
