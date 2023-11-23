@@ -36,14 +36,16 @@ public class TripController : ControllerBase
     public async Task<ActionResult<IEnumerable<TripReturnDto>>> AddNewTrip([FromBody] NewTripDto newTrip)
     {
         var user = await _userManager.GetUserAsync(User);
+        _logger.LogInformation("a new gpx import is being attempted by {Username}", user?.UserName ?? "no user!");
+
         if (user is null)
         {
             return Unauthorized();
         }
 
-        if (newTrip.User is not null &&
-            newTrip.User != user.Id &&
-            !await _userManager.IsInRoleAsync(user, "Admin"))
+        if (newTrip.User is not null && // user field exists
+            newTrip.User != user.Id && // not adding for self
+            !await _userManager.IsInRoleAsync(user, "Admin")) // not an admin
         {
             return Forbid();
         }
@@ -52,8 +54,12 @@ public class TripController : ControllerBase
         {
             // todo: run this on another thread
             // todo: update district caches
+            
+            // black box magic
             var tripTopologies = _areaExtractor.ProcessGpx(newTrip.GpxContents.AsUtf8Stream());
             var uploadTime = DateTime.UtcNow;
+            
+            // convert to database entities
             var dbTrips = tripTopologies.Select(topology =>
                 new Trip
                 {
@@ -68,20 +74,24 @@ public class TripController : ControllerBase
                 }
             ).ToList();
 
+            // compute all the trips together
             var unifiedTripArea = tripTopologies.Aggregate(
                 MultiPolygon.Empty as Geometry,
                 (current, topologyInfo) =>
                     current.Union(topologyInfo.AreaPolygon));
 
+            // add them to user overall area and update the amount
             user.OverallArea = user.OverallArea.Union(unifiedTripArea).AsMultiPolygon();
             user.OverallAreaAmount = user.OverallArea.Area;
             
+            // save everything and return
             await _db.AddRangeAsync(dbTrips);
             await _db.SaveChangesAsync();
             return Ok(_mapper.Map<IEnumerable<TripReturnDto>>(dbTrips));
         }
         catch (XmlException e)
         {
+            //todo: make this not spit stack traces on prod
             return BadRequest($"invalid GPX syntax: {e}");
         }
     }
