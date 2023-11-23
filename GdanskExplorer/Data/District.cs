@@ -8,5 +8,4 @@ public class District
     public Polygon Geometry { get; set; } = null!;
     public double Area { get; set; }
     public string Name { get; set; } = null!;
-    
 }
