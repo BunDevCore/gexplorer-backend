@@ -1,3 +1,4 @@
+using System.Text.Json;
 using GdanskExplorer.Data;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -6,10 +7,10 @@ using NetTopologySuite.Features;
 using NetTopologySuite.Geometries;
 using NetTopologySuite.IO;
 using Newtonsoft.Json;
+using Swashbuckle.AspNetCore.Annotations;
 
 namespace GdanskExplorer.Controllers;
 
-[Authorize(Roles = "Admin")]
 [Route("[controller]")]
 public class DistrictController : ControllerBase
 {
@@ -21,9 +22,12 @@ public class DistrictController : ControllerBase
     }
 
     [HttpPost("import")]
-    public async Task<IActionResult> ImportDistricts()
+    [Authorize(Roles = "Admin")]
+    // [SwaggerSchema("Accepts a GeoJSON feature collection as the body. All geometries must be polygonal and have a DZIELNICY attribute.")]
+    public async Task<IActionResult> ImportDistricts([FromBody] JsonElement data)
     {
-        var bodyString = await new StreamReader(HttpContext.Request.BodyReader.AsStream()).ReadToEndAsync();
+        var bodyString = data.GetRawText();
+        // var bodyString = await new StreamReader(HttpContext.Request.BodyReader.AsStream()).ReadToEndAsync();
         var reader = new GeoJsonReader();
         try
         {
@@ -38,6 +42,7 @@ public class DistrictController : ControllerBase
             );
             await _db.Districts.ExecuteDeleteAsync();
             await _db.Districts.AddRangeAsync(dbDistricts);
+            await _db.SaveChangesAsync();
         }
         catch (JsonReaderException)
         {

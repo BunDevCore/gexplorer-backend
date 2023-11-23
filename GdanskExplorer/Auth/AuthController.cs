@@ -59,7 +59,7 @@ public partial class AuthController : ControllerBase
             return BadRequest();
         }
 
-        var token = NewJwt(user);
+        var token = await NewJwt(user);
         return Ok(token);
     }
 
@@ -101,13 +101,9 @@ public partial class AuthController : ControllerBase
             .Concat(roleAddResult.Errors.Select(e => e.Code)));
     }
 
-    private string NewJwt(User user)
+    private async Task<string> NewJwt(User user)
     {
-        var claims = new List<Claim>
-        {
-            new(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
-            new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-        };
+        var claims = await GetClaims(user);
 
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["JWTKey"]));
         var token = new JwtSecurityToken(issuer: "geledit-auth",
@@ -118,5 +114,32 @@ public partial class AuthController : ControllerBase
 
         var serialized = new JwtSecurityTokenHandler().WriteToken(token);
         return serialized;
+    }
+
+    private async Task<IEnumerable<Claim>> GetClaims(User user)
+    {
+        var claims = new List<Claim>
+        {
+            new(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
+            new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+        };
+
+        var userClaims = await _userManager.GetClaimsAsync(user);
+        var userRoles = await _userManager.GetRolesAsync(user);
+
+        claims.AddRange(userClaims);
+        
+        foreach (var userRole in userRoles)
+        {
+            claims.Add(new Claim(ClaimTypes.Role, userRole));
+            var role = await _roleManager.FindByNameAsync(userRole);
+            if (role == null) continue;
+            
+            var roleClaims = await _roleManager.GetClaimsAsync(role);
+            claims.AddRange(roleClaims);
+        }
+
+
+        return claims;
     }
 }
