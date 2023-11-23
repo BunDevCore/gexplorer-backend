@@ -16,11 +16,6 @@ namespace GdanskExplorer.Controllers;
 [Route("[controller]")]
 public class TripController : ControllerBase
 {
-    private static readonly string[] Summaries = new[]
-    {
-        "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-    };
-
     private readonly ILogger<TripController> _logger;
     private readonly GExplorerContext _db;
     private readonly UserManager<User> _userManager;
