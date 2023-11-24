@@ -1,5 +1,8 @@
 using System.Text.Json;
+using AutoMapper;
+using AutoMapper.QueryableExtensions;
 using GdanskExplorer.Data;
+using GdanskExplorer.Dtos;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -8,6 +11,7 @@ using NetTopologySuite.Geometries;
 using NetTopologySuite.IO;
 using Newtonsoft.Json;
 using Swashbuckle.AspNetCore.Annotations;
+using IConfigurationProvider = AutoMapper.IConfigurationProvider;
 
 namespace GdanskExplorer.Controllers;
 
@@ -15,10 +19,12 @@ namespace GdanskExplorer.Controllers;
 public class DistrictController : ControllerBase
 {
     private GExplorerContext _db;
+    private IMapper _mapper;
 
-    public DistrictController(GExplorerContext db)
+    public DistrictController(GExplorerContext db, IMapper mapper)
     {
         _db = db;
+        _mapper = mapper;
     }
 
     [HttpPost("import")]
@@ -51,5 +57,11 @@ public class DistrictController : ControllerBase
         }
 
         return Ok();
+    }
+
+    [HttpGet("")]
+    public IEnumerable<DistrictDto> GetAll()
+    {
+        return _mapper.ProjectTo<DistrictDto>(_db.Districts);
     }
 }

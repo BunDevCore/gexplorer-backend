@@ -12,5 +12,6 @@ public class GExplorerAutoMapperProfile : Profile
         CreateMap<User, UserReturnDto>();
         CreateMap<Trip, TripReturnDto>();
         CreateMap<Trip, DetailedTripReturnDto>();
+        CreateMap<District, DistrictDto>();
     }
 }
