@@ -6,7 +6,7 @@ namespace GdanskExplorer.Dtos;
 public class DetailedTripReturnDto
 {
     public Guid Id { get; set; }
-    public UserReturnDto User { get; set; } = null!;
+    public ShortUserReturnDto User { get; set; } = null!;
     public double Area { get; set; }
 
     [JsonConverter(typeof(GeometryJsonConverter))]

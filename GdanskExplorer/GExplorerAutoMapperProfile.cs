@@ -9,7 +9,7 @@ public class GExplorerAutoMapperProfile : Profile
     public GExplorerAutoMapperProfile()
     {
         ReplaceMemberName("UserName", "Username");
-        CreateMap<User, UserReturnDto>();
+        CreateMap<User, ShortUserReturnDto>();
         CreateMap<Trip, TripReturnDto>();
         CreateMap<Trip, DetailedTripReturnDto>();
         CreateMap<District, DistrictDto>();
