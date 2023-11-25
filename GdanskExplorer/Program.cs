@@ -103,10 +103,6 @@ builder.Services.AddAuthentication(x =>
 builder.Services.Configure<AreaCalculationOptions>(
     builder.Configuration.GetSection(AreaCalculationOptions.SectionName));
 
-// builder.Services.AddSingleton<DotSpatialReprojector>(isp =>
-//     new DotSpatialReprojector(ProjectionInfo.FromEpsgCode(4326),
-//     ProjectionInfo.FromProj4String(isp.GetRequiredService<IOptions<AreaCalculationOptions>>().Value.AreaSrid)));
-
 builder.Services.AddSingleton<GpxAreaExtractor>(isp => new GpxAreaExtractor(
     isp.GetRequiredService<IOptions<AreaCalculationOptions>>().Value, isp.GetRequiredService<ILogger<GpxAreaExtractor>>()));
 
@@ -131,6 +127,7 @@ app.MapControllers();
 using (var scope = app.Services.CreateScope())
 {
     var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole<Guid>>>();
+    var userManager = scope.ServiceProvider.GetRequiredService<UserManager<User>>();
     var roles = new[] { "Admin", "User" };
  
     foreach (var role in roles)
