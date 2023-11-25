@@ -50,15 +50,23 @@ public class TripController : ControllerBase
             return Forbid();
         }
 
+        if (newTrip.User is not null)
+        {
+            // ReSharper disable once EntityFramework.NPlusOne.IncompleteDataQuery
+            user = await _db.Users
+                .FirstOrDefaultAsync(x => x.Id == newTrip.User);
+            if (user is null) return NotFound("user id not found");
+        }
+
         try
         {
             // todo: run this on another thread
             // todo: update district caches
-            
+
             // black box magic
             var tripTopologies = _areaExtractor.ProcessGpx(newTrip.GpxContents.AsUtf8Stream());
             var uploadTime = DateTime.UtcNow;
-            
+
             // convert to database entities
             var dbTrips = tripTopologies.Select(topology =>
                 new Trip
@@ -70,7 +78,7 @@ public class TripController : ControllerBase
                     Polygon = topology.AreaPolygon,
                     UploadTime = uploadTime,
                     Area = topology.AreaPolygon.Area,
-                    Length = topology.LocalLinestring.Length, 
+                    Length = topology.LocalLinestring.Length,
                 }
             ).ToList();
 
@@ -83,7 +91,27 @@ public class TripController : ControllerBase
             // add them to user overall area and update the amount
             user.OverallArea = user.OverallArea.Union(unifiedTripArea).AsMultiPolygon();
             user.OverallAreaAmount = user.OverallArea.Area;
+
+            // update district caches
+            // ReSharper disable once EntityFramework.NPlusOne.IncompleteDataQuery
+            var newAreaCacheEntries = _db.Districts.AsParallel().Select(district =>
+                new DistrictAreaCacheEntry
+                {
+                    District = district,
+                    DistrictId = district.Id,
+                    User = user,
+                    UserId = user.Id,
+                    // ReSharper disable once EntityFramework.NPlusOne.IncompleteDataUsage
+                    Area = district.Geometry.Intersection(user.OverallArea).Area,
+                }
+            );
+
+            // purge all the previous ones for this user /shrug
+            await _db.DistrictAreaCacheEntries.Where(x => x.UserId == user.Id).ExecuteDeleteAsync();
+            // add new ones
+            await _db.AddRangeAsync(newAreaCacheEntries);
             
+
             // save everything and return
             await _db.AddRangeAsync(dbTrips);
             await _db.SaveChangesAsync();
@@ -105,8 +133,7 @@ public class TripController : ControllerBase
         {
             return NotFound();
         }
-        
+
         return Ok(_mapper.Map<DetailedTripReturnDto>(trip));
     }
-    
 }
