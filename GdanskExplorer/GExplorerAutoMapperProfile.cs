@@ -12,7 +12,10 @@ public class GExplorerAutoMapperProfile : Profile
         CreateMap<User, ShortUserReturnDto>();
         CreateMap<Trip, TripReturnDto>();
         CreateMap<Trip, DetailedTripReturnDto>();
-        CreateMap<District, DistrictDto>();
+        CreateMap<District, DistrictDto>()
+            .ForMember(x => x.Geometry,
+                opt => opt.MapFrom(x =>
+                    x.GpsGeometry));
         CreateMap<User, UserReturnDto>()
             .ForMember(x => x.Trips,
                 opt => opt.MapFrom(x =>

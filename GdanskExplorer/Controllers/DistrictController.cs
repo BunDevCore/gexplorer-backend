@@ -8,6 +8,7 @@ using GdanskExplorer.Topology;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using NetTopologySuite.Features;
 using NetTopologySuite.Geometries;
 using NetTopologySuite.IO;
@@ -22,17 +23,17 @@ public class DistrictController : ControllerBase
 {
     private readonly GExplorerContext _db;
     private readonly IMapper _mapper;
-    private readonly AreaCalculationOptions _options;
+    private readonly IOptions<AreaCalculationOptions> _options;
     private readonly DotSpatialReprojector _reproject;
 
 
-    public DistrictController(GExplorerContext db, IMapper mapper, AreaCalculationOptions options)
+    public DistrictController(GExplorerContext db, IMapper mapper, IOptions<AreaCalculationOptions> options)
     {
         _db = db;
         _mapper = mapper;
         _options = options;
         _reproject = new DotSpatialReprojector(ProjectionInfo.FromEpsgCode(4326),
-            ProjectionInfo.FromEpsgCode(_options.CommonAreaSrid));
+            ProjectionInfo.FromEpsgCode(_options.Value.CommonAreaSrid));
     }
 
     [HttpPost("import")]
