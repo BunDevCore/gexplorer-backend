@@ -19,7 +19,7 @@ public class UserController : ControllerBase
     }
 
     [HttpGet("{username}")]
-    public async Task<UserReturnDto> GetByUsername(string username)
+    public async Task<ActionResult<UserReturnDto>> GetByUsername(string username)
     {
         var user = await _db.Users
             .Include(x =>
@@ -32,11 +32,17 @@ public class UserController : ControllerBase
             })
             .Where(x => x.UserName == username)
             .FirstOrDefaultAsync();
-        return _mapper.Map<UserReturnDto>(user);
+
+        if (user is null)
+        {
+            return NotFound();
+        }
+        
+        return Ok(_mapper.Map<UserReturnDto>(user));
     }
     
     [HttpGet("id/{id:guid}")]
-    public async Task<UserReturnDto> GetById(Guid id)
+    public async Task<ActionResult<UserReturnDto>> GetById(Guid id)
     {
         var user = await _db.Users
             .Include(x =>
@@ -49,6 +55,12 @@ public class UserController : ControllerBase
             })
             .Where(x => x.Id == id)
             .FirstOrDefaultAsync();
-        return _mapper.Map<UserReturnDto>(user);
+        
+        if (user is null)
+        {
+            return NotFound();
+        }
+        
+        return Ok(_mapper.Map<UserReturnDto>(user));
     }
 }
