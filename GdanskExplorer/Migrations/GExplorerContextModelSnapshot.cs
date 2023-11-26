@@ -66,10 +66,6 @@ namespace GdanskExplorer.Migrations
                         .IsRequired()
                         .HasColumnType("geometry");
 
-                    b.Property<Polygon>("GpsGeometry")
-                        .IsRequired()
-                        .HasColumnType("geometry");
-
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("text");

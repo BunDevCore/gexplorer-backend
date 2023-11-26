@@ -12,10 +12,7 @@ public class GExplorerAutoMapperProfile : Profile
         CreateMap<User, ShortUserReturnDto>();
         CreateMap<Trip, TripReturnDto>();
         CreateMap<Trip, DetailedTripReturnDto>();
-        CreateMap<District, DistrictDto>()
-            .ForMember(x => x.Geometry,
-                opt => opt.MapFrom(x =>
-                    x.GpsGeometry));
+        CreateMap<District, DistrictDto>();
         CreateMap<User, UserReturnDto>()
             .ForMember(x => x.Trips,
                 opt => opt.MapFrom(x =>
@@ -24,5 +21,8 @@ public class GExplorerAutoMapperProfile : Profile
                 opt => opt.MapFrom(x => 
                     x.DistrictAreas.ToDictionary(dace => dace.DistrictId, dace => dace.Area)));
         CreateMap<District, ShortDistrictDto>();
+
+        CreateMap(typeof(LeaderboardEntry<,>), typeof(LeaderboardEntryDto<>))
+            .ConvertUsing(typeof(LeaderboardEntryConverter<>));
     }
 }

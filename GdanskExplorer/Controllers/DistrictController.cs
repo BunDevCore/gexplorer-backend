@@ -1,14 +1,11 @@
 using System.Text.Json;
 using AutoMapper;
 using AutoMapper.QueryableExtensions;
-using DotSpatial.Projections;
 using GdanskExplorer.Data;
 using GdanskExplorer.Dtos;
-using GdanskExplorer.Topology;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
 using NetTopologySuite.Features;
 using NetTopologySuite.Geometries;
 using NetTopologySuite.IO;
@@ -21,19 +18,13 @@ namespace GdanskExplorer.Controllers;
 [Route("[controller]")]
 public class DistrictController : ControllerBase
 {
-    private readonly GExplorerContext _db;
-    private readonly IMapper _mapper;
-    private readonly IOptions<AreaCalculationOptions> _options;
-    private readonly DotSpatialReprojector _reproject;
+    private GExplorerContext _db;
+    private IMapper _mapper;
 
-
-    public DistrictController(GExplorerContext db, IMapper mapper, IOptions<AreaCalculationOptions> options)
+    public DistrictController(GExplorerContext db, IMapper mapper)
     {
         _db = db;
         _mapper = mapper;
-        _options = options;
-        _reproject = new DotSpatialReprojector(ProjectionInfo.FromEpsgCode(4326),
-            ProjectionInfo.FromEpsgCode(_options.Value.CommonAreaSrid));
     }
 
     [HttpPost("import")]
@@ -48,18 +39,12 @@ public class DistrictController : ControllerBase
         {
             var fc = reader.Read<FeatureCollection>(bodyString);
             var dbDistricts = fc.Select(f =>
+                new District
                 {
-                    var gpsGeometry = (Polygon)f.Geometry.Copy();
-                    gpsGeometry.Apply(_reproject.Reversed());
-                    
-                    return new District
-                    {
-                        Geometry = (Polygon)f.Geometry,
-                        Area = f.Geometry.Area,
-                        GpsGeometry = gpsGeometry,
-                        Id = new Guid(),
-                        Name = (string)f.Attributes["DZIELNICY"]
-                    };
+                    Geometry = (Polygon)f.Geometry,
+                    Area = f.Geometry.Area,
+                    Id = new Guid(),
+                    Name = (string)f.Attributes["DZIELNICY"]
                 }
             );
             await _db.Districts.ExecuteDeleteAsync();

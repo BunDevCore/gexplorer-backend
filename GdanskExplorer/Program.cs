@@ -13,6 +13,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Zomp.EFCore.WindowFunctions.Npgsql;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -59,7 +60,8 @@ builder.Services.AddSwaggerGen(c =>
 
 builder.Services.AddDbContext<GExplorerContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("prodDb"),
-        x => x.UseNetTopologySuite()));
+        x => x.UseNetTopologySuite().UseWindowFunctions())
+        .EnableSensitiveDataLogging());
 
 builder.Services.AddCors(options => options.AddDefaultPolicy(policy => policy
     .AllowAnyHeader()
