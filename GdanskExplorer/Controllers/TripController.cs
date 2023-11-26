@@ -107,7 +107,10 @@ public class TripController : ControllerBase
             );
 
             // purge all the previous ones for this user /shrug
-            await _db.DistrictAreaCacheEntries.Where(x => x.UserId == user.Id).ExecuteDeleteAsync();
+            if (await _db.DistrictAreaCacheEntries.AnyAsync(x => x.UserId == user.Id))
+            {
+                await _db.DistrictAreaCacheEntries.Where(x => x.UserId == user.Id).ExecuteDeleteAsync();
+            }
             // add new ones
             await _db.AddRangeAsync(newAreaCacheEntries);
             

@@ -35,6 +35,8 @@ public static class Extensions
                 Id = x.Id,
                 UserName = x.UserName,
                 JoinedAt = x.JoinedAt,
-                OverallAreaAmount = x.OverallAreaAmount
+                OverallAreaAmount = x.OverallAreaAmount,
+                DistrictAreas = x.DistrictAreas,
+                Achievements = x.Achievements,
             });
 }
