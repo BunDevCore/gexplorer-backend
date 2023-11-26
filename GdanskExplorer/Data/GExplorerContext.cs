@@ -30,6 +30,14 @@ public class GExplorerContext : IdentityDbContext<User, IdentityRole<Guid>, Guid
             .WithOne(x => x.User);
 
         modelBuilder.Entity<User>()
+            .HasMany(x => x.DistrictAreas)
+            .WithOne(x => x.User);
+
+        modelBuilder.Entity<District>()
+            .HasMany(x => x.DistrictAreaCacheEntries)
+            .WithOne(x => x.District);
+
+        modelBuilder.Entity<User>()
             .HasMany<Achievement>(x => x.Achievements)
             .WithMany(x => x.Achievers)
             .UsingEntity<AchievementGet>();

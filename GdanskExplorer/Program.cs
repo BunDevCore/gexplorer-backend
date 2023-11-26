@@ -1,6 +1,7 @@
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using AutoMapper;
 using DotSpatial.Projections;
 using GdanskExplorer;
 using GdanskExplorer.Data;
@@ -128,6 +129,8 @@ using (var scope = app.Services.CreateScope())
 {
     var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole<Guid>>>();
     var userManager = scope.ServiceProvider.GetRequiredService<UserManager<User>>();
+    var mapper = scope.ServiceProvider.GetRequiredService<IMapper>();
+    mapper.ConfigurationProvider.AssertConfigurationIsValid();
     var roles = new[] { "Admin", "User" };
  
     foreach (var role in roles)

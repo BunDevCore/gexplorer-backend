@@ -357,7 +357,7 @@ namespace GdanskExplorer.Migrations
             modelBuilder.Entity("GdanskExplorer.Data.DistrictAreaCacheEntry", b =>
                 {
                     b.HasOne("GdanskExplorer.Data.District", "District")
-                        .WithMany()
+                        .WithMany("DistrictAreaCacheEntries")
                         .HasForeignKey("DistrictId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -438,6 +438,11 @@ namespace GdanskExplorer.Migrations
             modelBuilder.Entity("GdanskExplorer.Data.Achievement", b =>
                 {
                     b.Navigation("AchievementGets");
+                });
+
+            modelBuilder.Entity("GdanskExplorer.Data.District", b =>
+                {
+                    b.Navigation("DistrictAreaCacheEntries");
                 });
 
             modelBuilder.Entity("GdanskExplorer.Data.User", b =>
