@@ -9,9 +9,17 @@ public class GExplorerAutoMapperProfile : Profile
     public GExplorerAutoMapperProfile()
     {
         ReplaceMemberName("UserName", "Username");
-        CreateMap<User, UserReturnDto>();
+        CreateMap<User, ShortUserReturnDto>();
         CreateMap<Trip, TripReturnDto>();
         CreateMap<Trip, DetailedTripReturnDto>();
         CreateMap<District, DistrictDto>();
+        CreateMap<User, UserReturnDto>()
+            .ForMember(x => x.Trips,
+                opt => opt.MapFrom(x =>
+                    x.Trips.Take(10)))
+            .ForMember(x => x.DistrictAreas,
+                opt => opt.MapFrom(x => 
+                    x.DistrictAreas.ToDictionary(dace => dace.DistrictId, dace => dace.Area)));
+        CreateMap<District, ShortDistrictDto>();
     }
 }
