@@ -3,6 +3,7 @@ using System.Security.Claims;
 using System.Text;
 using System.Text.RegularExpressions;
 using GdanskExplorer.Data;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
@@ -31,6 +32,13 @@ public partial class AuthController : ControllerBase
         _roleManager = roleManager;
         _log = log;
         _db = db;
+    }
+
+    [HttpGet("check")]
+    [Authorize]
+    public string AuthCheck()
+    {
+        return ":)";
     }
 
     [HttpPost("login")]
