@@ -1,3 +1,4 @@
+using GdanskExplorer.Data;
 using NetTopologySuite.Geometries;
 
 namespace GdanskExplorer.Achievements;
@@ -16,6 +17,6 @@ public class PointVisitedAchievement : IAchievable
     public bool CheckOverallArea(MultiPolygon area) => 
         Target.Within(area);
 
-    public bool CheckTrip(Polygon tripPolygon) =>
-        Target.Within(tripPolygon);
+    public bool CheckTrip(Trip trip) =>
+        Target.Within(trip.Polygon);
 }
