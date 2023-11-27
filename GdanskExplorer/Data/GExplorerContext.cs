@@ -11,6 +11,7 @@ public class GExplorerContext : IdentityDbContext<User, IdentityRole<Guid>, Guid
     public DbSet<Trip> Trips { get; set; } = null!;
 
     public DbSet<AchievementGet> AchievementGets { get; set; } = null!;
+    public DbSet<Achievement> Achievements { get; set; }
 
     public DbSet<District> Districts { get; set; } = null!;
     public DbSet<DistrictAreaCacheEntry> DistrictAreaCacheEntries { get; set; } = null!;
