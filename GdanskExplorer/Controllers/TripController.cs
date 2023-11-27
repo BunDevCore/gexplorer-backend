@@ -128,7 +128,7 @@ public class TripController : ControllerBase
     }
 
     [HttpGet("id/{guid:guid}")]
-    public ActionResult<DetailedTripReturnDto> GetById([FromRoute] Guid guid)
+    public async Task<ActionResult<DetailedTripReturnDto>> GetById([FromRoute] Guid guid)
     {
         var trip = _db.Trips.FirstOrDefault(x => x.Id.Equals(guid));
 
@@ -136,7 +136,16 @@ public class TripController : ControllerBase
         {
             return NotFound();
         }
+        
+        var user = await _db.Entry(trip).Reference(x => x.User).Query().SimplifyUser().FirstAsync();
+        _logger.LogDebug("got trip owner = {User}", user);
+        trip.User = user;
 
+        _db.Entry(trip).State = EntityState.Unchanged;
+        _db.Entry(user).State = EntityState.Unchanged;
+
+        await _db.SaveChangesAsync();
+        
         return Ok(_mapper.Map<DetailedTripReturnDto>(trip));
     }
 }

@@ -38,5 +38,6 @@ public static class Extensions
                 OverallAreaAmount = x.OverallAreaAmount,
                 DistrictAreas = x.DistrictAreas,
                 Achievements = x.Achievements,
+                Trips = x.Trips
             });
 }
