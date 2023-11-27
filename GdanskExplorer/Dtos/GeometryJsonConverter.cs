@@ -23,9 +23,7 @@ public class GeometryJsonConverter : JsonConverter<Geometry>
         Geometry geometry,
         JsonSerializerOptions options)
     {
-        Console.WriteLine("kurwaaaaaaaaa !!!!");
         var json = new GeoJsonWriter().Write(geometry);
-        Console.WriteLine(json);
         writer.WriteRawValue(json, true);
     }
 }
