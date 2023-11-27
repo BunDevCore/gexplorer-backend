@@ -5,11 +5,11 @@ namespace GdanskExplorer.Achievements;
 
 public class GeometryVisitedAchievement : IAchievable
 {
-    public Geometry Target { get; }
-    public Guid Id { get; }
+    public Geometry Target { get; set;  }
+    public string Id { get; set; }
     public string IconId { get; }
 
-    public GeometryVisitedAchievement(Guid id, Geometry target, string iconId = "default")
+    public GeometryVisitedAchievement(string id, Geometry target, string iconId = "default")
     {
         Target = target;
         IconId = iconId;
