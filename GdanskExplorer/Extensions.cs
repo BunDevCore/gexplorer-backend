@@ -1,4 +1,5 @@
 using System.Text;
+using GdanskExplorer.Data;
 using NetTopologySuite.Geometries;
 
 namespace GdanskExplorer;
@@ -20,4 +21,23 @@ public static class Extensions
 
     public static async Task<IEnumerable<T1>> SelectManyAsync<T, T1>(this IEnumerable<T> enumeration,
         Func<T, Task<IEnumerable<T1>>> func) => (await Task.WhenAll(enumeration.Select(func))).SelectMany(s => s);
+
+    public static IEnumerable<T> Page<T>(this IEnumerable<T> e, int pageSize, int page) =>
+        e.Skip(pageSize * page - pageSize).Take(pageSize);
+
+    public static IQueryable<T> Page<T>(this IQueryable<T> e, int pageSize, int page) =>
+        e.Skip(pageSize * page - pageSize).Take(pageSize);
+
+    public static IQueryable<User> SimplifyUser(this IQueryable<User> q) => q
+        .Select(x =>
+            new User
+            {
+                Id = x.Id,
+                UserName = x.UserName,
+                JoinedAt = x.JoinedAt,
+                OverallAreaAmount = x.OverallAreaAmount,
+                DistrictAreas = x.DistrictAreas,
+                Achievements = x.Achievements,
+                Trips = x.Trips
+            });
 }

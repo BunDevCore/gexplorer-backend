@@ -24,5 +24,8 @@ public class GExplorerAutoMapperProfile : Profile
                 opt => opt.MapFrom(x => 
                     x.DistrictAreas.ToDictionary(dace => dace.DistrictId, dace => dace.Area)));
         CreateMap<District, ShortDistrictDto>();
+
+        CreateMap(typeof(LeaderboardEntry<,>), typeof(LeaderboardEntryDto<>))
+            .ConvertUsing(typeof(LeaderboardEntryConverter<>));
     }
 }
