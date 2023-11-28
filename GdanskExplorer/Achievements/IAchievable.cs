@@ -7,7 +7,7 @@ public interface IAchievable
 {
     public string Id { get; }
     public string IconId { get; }
-    public bool CheckOverallArea(MultiPolygon area);
+    public bool CheckUser(User user);
 
     public bool CheckTrip(Trip trip);
 }

@@ -16,12 +16,12 @@ public class GeometryVisitedAchievement : IAchievable
         Id = id;
     }
 
-    public bool CheckOverallArea(MultiPolygon area) =>
+    public bool CheckUser(User user) =>
         Target switch {
-            MultiPoint multiPoint => multiPoint.Within(area),
-            MultiPolygon multiPolygon => multiPolygon.Geometries.Cast<Polygon>().All(p => p.Intersects(area)),
-            Point point => point.Within(area),
-            Polygon polygon => polygon.Intersects(area),
+            MultiPoint multiPoint => multiPoint.Within(user.OverallArea),
+            MultiPolygon multiPolygon => multiPolygon.Geometries.Cast<Polygon>().All(p => p.Intersects(user.OverallArea)),
+            Point point => point.Within(user.OverallArea),
+            Polygon polygon => polygon.Intersects(user.OverallArea),
             _ => false,
         };
 
