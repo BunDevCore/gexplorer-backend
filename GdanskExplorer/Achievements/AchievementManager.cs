@@ -41,7 +41,7 @@ public class AchievementManager
             .Where(x => x.achievable!.CheckUser(user)); // guaranteed to not be null because of line above
 
         var achieved = geometryAchievements.Concat(customAchievements!) // same deal
-            .Select(x => x.entity);
+            .Select(x => x.entity).Distinct();
 
         return achieved.Select(a => new AchievementGet
         {
@@ -49,6 +49,35 @@ public class AchievementManager
             User = user,
             TimeAchieved = DateTime.UtcNow,
             UserId = user.Id
+        });
+    }
+    
+    public IEnumerable<AchievementGet> CheckTrip(List<Achievement> achievements, Trip trip)
+    {
+        // plain geometry achievements, do not need to go through any possible custom logic and can just call ToIAchievable to avoid additional queries
+        var geometryAchievements = achievements
+            .AsParallel()
+            .Where(a => a.Target is not null)
+            .Select(x => new { achievable = x.ToIAchievable(), entity = x })
+            .Where(x => x.achievable.CheckTrip(trip));
+        
+        // achievements with custom logic: target is null, might need id
+        var customAchievements = achievements
+            .Where(a => a.Target is null)
+            .Select(x => new { achievable = GetById(x.Id), entity = x })
+            .AsParallel() // only here to avoid possible parallel querying on the DbContext all this uses
+            .Where(x => x.achievable != null)
+            .Where(x => x.achievable!.CheckTrip(trip)); // guaranteed to not be null because of line above
+
+        var achieved = geometryAchievements.Concat(customAchievements!) // same deal
+            .Select(x => x.entity).Distinct();
+
+        return achieved.Select(a => new AchievementGet
+        {
+            AchievementId = a.Id,
+            User = trip.User,
+            TimeAchieved = DateTime.UtcNow,
+            UserId = trip.User.Id
         });
     }
 }

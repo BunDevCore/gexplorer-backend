@@ -4,6 +4,7 @@ using System.Text.Json.Serialization;
 using AutoMapper;
 using DotSpatial.Projections;
 using GdanskExplorer;
+using GdanskExplorer.Achievements;
 using GdanskExplorer.Data;
 using GdanskExplorer.Dtos;
 using GdanskExplorer.Topology;
@@ -108,6 +109,8 @@ builder.Services.Configure<AreaCalculationOptions>(
 
 builder.Services.AddSingleton<GpxAreaExtractor>(isp => new GpxAreaExtractor(
     isp.GetRequiredService<IOptions<AreaCalculationOptions>>().Value, isp.GetRequiredService<ILogger<GpxAreaExtractor>>()));
+
+builder.Services.AddScoped<AchievementManager>();
 
 builder.Services.AddAutoMapper(typeof(GExplorerAutoMapperProfile));
 
