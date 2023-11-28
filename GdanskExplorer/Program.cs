@@ -14,6 +14,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Swashbuckle.AspNetCore.SwaggerUI;
 using Zomp.EFCore.WindowFunctions.Npgsql;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -32,6 +33,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "gexplorer-auth", Version = "v1" });
+    
     c.AddSecurityDefinition("Bearer",
         new OpenApiSecurityScheme
         {
@@ -127,7 +129,12 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwaggerUI(x =>
+    {
+        x.DefaultModelRendering(ModelRendering.Model);
+        x.DefaultModelsExpandDepth(2);
+        x.DefaultModelExpandDepth(2);
+    });
 }
 
 app.UseHttpsRedirection();
