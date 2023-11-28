@@ -93,20 +93,26 @@ public partial class AuthController : ControllerBase
             Id = Guid.NewGuid(),
             UserName = dto.UserName,
             Email = dto.Email,
+            SecurityStamp = new Guid().ToString()
         };
 
 
         var result = await _userManager.CreateAsync(newUser, dto.Password);
+        
+        if (!result.Succeeded)
+        {
+            return UnprocessableEntity(result.Errors.Select(e => e.Code));
+        }
 
         var roleAddResult = await _userManager.AddToRoleAsync(newUser, "User");
 
-        if (result.Succeeded && roleAddResult.Succeeded)
+        if (!roleAddResult.Succeeded)
         {
-            return new OkObjectResult(NewJwt(newUser));
+            return UnprocessableEntity(roleAddResult.Errors.Select(e => e.Code));
         }
+        return Ok(await NewJwt(newUser));
 
-        return UnprocessableEntity(result.Errors.Select(e => e.Code)
-            .Concat(roleAddResult.Errors.Select(e => e.Code)));
+        
     }
 
     private async Task<string> NewJwt(User user)
