@@ -1,5 +1,6 @@
 using System.Xml;
 using AutoMapper;
+using GdanskExplorer.Achievements;
 using GdanskExplorer.Data;
 using GdanskExplorer.Dtos;
 using GdanskExplorer.Topology;
@@ -21,15 +22,17 @@ public class TripController : ControllerBase
     private readonly UserManager<User> _userManager;
     private readonly GpxAreaExtractor _areaExtractor;
     private readonly IMapper _mapper;
+    private readonly AchievementManager _achievementMgr;
 
     public TripController(ILogger<TripController> logger, UserManager<User> userManager, GExplorerContext db,
-        GpxAreaExtractor areaExtractor, IMapper mapper)
+        GpxAreaExtractor areaExtractor, IMapper mapper, AchievementManager achievementMgr)
     {
         _logger = logger;
         _userManager = userManager;
         _db = db;
         _areaExtractor = areaExtractor;
         _mapper = mapper;
+        _achievementMgr = achievementMgr;
     }
 
     [HttpPost("new")]
@@ -109,7 +112,9 @@ public class TripController : ControllerBase
             // purge all the previous ones for this user /shrug
             if (await _db.DistrictAreaCacheEntries.AnyAsync(x => x.UserId == user.Id))
             {
-                await _db.DistrictAreaCacheEntries.Where(x => x.UserId == user.Id).ExecuteDeleteAsync();
+                var h = _db.DistrictAreaCacheEntries.Where(x => x.User == user);
+                _db.RemoveRange(h);
+                await _db.SaveChangesAsync();
             }
             // add new ones
             await _db.AddRangeAsync(newAreaCacheEntries);
@@ -117,6 +122,14 @@ public class TripController : ControllerBase
 
             // save everything and return
             await _db.AddRangeAsync(dbTrips);
+            
+            // achievement check
+            await _db.Entry(user).Collection<Achievement>(x => x.Achievements).LoadAsync();
+            var remainingAchievements = _db.Achievements.Where(a => !user.Achievements.Contains(a)).ToList();
+
+            var newAchievements = _achievementMgr.CheckUser(remainingAchievements, user).ToList();
+            await _db.AddRangeAsync(newAchievements);
+            
             await _db.SaveChangesAsync();
             return Ok(_mapper.Map<IEnumerable<TripReturnDto>>(dbTrips));
         }

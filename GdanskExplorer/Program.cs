@@ -59,9 +59,15 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
+
+builder.Services.AddDbContext<GExplorerLeaderboardContext>(options =>
+    options.UseNpgsql(builder.Configuration.GetConnectionString("prodDb"),
+            x => x.UseNetTopologySuite().UseWindowFunctions())
+        .EnableSensitiveDataLogging());
+
 builder.Services.AddDbContext<GExplorerContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("prodDb"),
-        x => x.UseNetTopologySuite().UseWindowFunctions())
+        x => x.UseNetTopologySuite()/*.UseWindowFunctions()*/)
         .EnableSensitiveDataLogging());
 
 builder.Services.AddCors(options => options.AddDefaultPolicy(policy => policy

@@ -14,13 +14,13 @@ namespace GdanskExplorer.Controllers;
 [Route("[controller]")]
 public class LeaderboardController : ControllerBase
 {
-    private readonly GExplorerContext _db;
+    private readonly GExplorerLeaderboardContext _db;
     private readonly ILogger<LeaderboardController> _logger;
     private readonly IMapper _mapper;
 
     public const int PageSize = 30;
 
-    public LeaderboardController(GExplorerContext db, ILogger<LeaderboardController> logger, IMapper mapper)
+    public LeaderboardController(GExplorerLeaderboardContext db, ILogger<LeaderboardController> logger, IMapper mapper)
     {
         _db = db;
         _logger = logger;
