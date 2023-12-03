@@ -43,7 +43,8 @@ public class LeaderboardController : ControllerBase
                 Value = x.OverallAreaAmount,
                 Inner = _mapper.Map<ShortUserReturnDto>(x),
                 Rank = EF.Functions.Rank(EF.Functions.Over()
-                    .OrderByDescending(x.OverallAreaAmount))
+                    .OrderByDescending(x.OverallAreaAmount)
+                    .OrderByDescending(x.Id))
             }).Page(PageSize, page);
 
         return leaderboard.ToDictionary(x => x.Rank,
@@ -80,10 +81,65 @@ public class LeaderboardController : ControllerBase
                 Rank = EF.Functions.Rank(EF.Functions.Over()
                     .OrderByDescending(x.DistrictAreas
                         .Where(dace => dace.DistrictId == id) // same deal as before
-                        .Sum(dace => dace.Area)))
+                        .Sum(dace => dace.Area))
+                    .ThenByDescending(x.Id))
             }).Page(PageSize, page);
 
         return leaderboard.ToDictionary(x => x.Rank,
             x => _mapper.Map<LeaderboardEntryDto<double>>(x));
+    }
+
+    [HttpGet("overall/{userId:guid}")]
+    public async Task<ActionResult<long>> GetOverallRankForId(Guid userId)
+    {
+        FormattableString query = $"""
+                                    SELECT LD.R as "Value" FROM (
+                                        SELECT a0."Id", RANK() OVER(ORDER BY a0."OverallAreaAmount" DESC, a0."Id" DESC) as R
+                                        FROM "AspNetUsers" AS a0
+                                    ) as LD
+                                    WHERE LD."Id" = {userId}
+                                   """;
+
+        try
+        {
+            var rank = await _db.Database.SqlQuery<long>(query).FirstAsync();
+            return rank;
+        }
+        catch (InvalidOperationException e)
+        {
+            return NotFound();
+        }
+    }
+    
+    [HttpGet("district/{districtId:guid}/{userId:guid}")]
+    public async Task<ActionResult<long>> GetDistrictRankForId(Guid districtId, Guid userId)
+    {
+        var district = await _db.Districts.FindAsync(districtId);
+
+        if (district is null)
+        {
+            return NotFound();
+        }
+        
+        FormattableString query = $"""
+                                    SELECT LD."R" as "Value"
+                                   FROM (SELECT U."Id"                                                              as "UserId",
+                                                rank() over (order by "Area" DESC NULLS LAST)                       as "R"
+                                         from "AspNetUsers" as U
+                                                  LEFT JOIN "DistrictAreaCacheEntries" as DACE
+                                                            on DACE."UserId" = U."Id" and
+                                                               DACE."DistrictId" = {districtId}) as LD
+                                   where LD."UserId" = {userId}
+                                   """;
+
+        try
+        {
+            var rank = await _db.Database.SqlQuery<long>(query).FirstAsync();
+            return rank;
+        }
+        catch (InvalidOperationException e)
+        {
+            return NotFound();
+        }
     }
 }
