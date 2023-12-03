@@ -1,11 +1,8 @@
-using System.Linq.Expressions;
 using AutoMapper;
-using AutoMapper.Execution;
 using GdanskExplorer.Data;
 using GdanskExplorer.Dtos;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Infrastructure;
 using Zomp.EFCore.WindowFunctions;
 
 namespace GdanskExplorer.Controllers;
