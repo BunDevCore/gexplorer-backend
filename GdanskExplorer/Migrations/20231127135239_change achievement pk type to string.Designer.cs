@@ -3,6 +3,7 @@ using System;
 using GdanskExplorer.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NetTopologySuite.Geometries;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
@@ -12,9 +13,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace GdanskExplorer.Migrations
 {
     [DbContext(typeof(GExplorerContext))]
-    partial class GExplorerContextModelSnapshot : ModelSnapshot
+    [Migration("20231127135239_change achievement pk type to string")]
+    partial class changeachievementpktypetostring
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -29,12 +32,9 @@ namespace GdanskExplorer.Migrations
                     b.Property<string>("Id")
                         .HasColumnType("text");
 
-                    b.Property<Geometry>("Target")
-                        .HasColumnType("geometry");
-
                     b.HasKey("Id");
 
-                    b.ToTable("Achievements");
+                    b.ToTable("Achievement");
                 });
 
             modelBuilder.Entity("GdanskExplorer.Data.AchievementGet", b =>

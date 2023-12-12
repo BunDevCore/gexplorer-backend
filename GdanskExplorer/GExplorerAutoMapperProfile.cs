@@ -16,13 +16,22 @@ public class GExplorerAutoMapperProfile : Profile
             .ForMember(x => x.Geometry,
                 opt => opt.MapFrom(x =>
                     x.GpsGeometry));
+
+        CreateMap<AchievementGet, AchievementGetDto>();
+        
         CreateMap<User, UserReturnDto>()
             .ForMember(x => x.Trips,
                 opt => opt.MapFrom(x =>
                     x.Trips.Take(10)))
             .ForMember(x => x.DistrictAreas,
                 opt => opt.MapFrom(x => 
-                    x.DistrictAreas.ToDictionary(dace => dace.DistrictId, dace => dace.Area)));
+                    x.DistrictAreas.ToDictionary(dace => dace.DistrictId, dace => dace.Area)))
+            .ForMember(x => x.Achievements,
+                opt => opt.MapFrom(x =>
+                    x.AchievementGets));
         CreateMap<District, ShortDistrictDto>();
+
+        CreateMap(typeof(LeaderboardEntry<,>), typeof(LeaderboardEntryDto<>))
+            .ConvertUsing(typeof(LeaderboardEntryConverter<>));
     }
 }

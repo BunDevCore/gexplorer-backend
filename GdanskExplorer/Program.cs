@@ -4,6 +4,7 @@ using System.Text.Json.Serialization;
 using AutoMapper;
 using DotSpatial.Projections;
 using GdanskExplorer;
+using GdanskExplorer.Achievements;
 using GdanskExplorer.Data;
 using GdanskExplorer.Dtos;
 using GdanskExplorer.Topology;
@@ -13,6 +14,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Swashbuckle.AspNetCore.SwaggerUI;
+using Zomp.EFCore.WindowFunctions.Npgsql;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -30,6 +33,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "gexplorer-auth", Version = "v1" });
+    
     c.AddSecurityDefinition("Bearer",
         new OpenApiSecurityScheme
         {
@@ -57,9 +61,16 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
+
+builder.Services.AddDbContext<GExplorerLeaderboardContext>(options =>
+    options.UseNpgsql(builder.Configuration.GetConnectionString("prodDb"),
+            x => x.UseNetTopologySuite().UseWindowFunctions())
+        .EnableSensitiveDataLogging());
+
 builder.Services.AddDbContext<GExplorerContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("prodDb"),
-        x => x.UseNetTopologySuite()));
+        x => x.UseNetTopologySuite()/*.UseWindowFunctions()*/)
+        .EnableSensitiveDataLogging());
 
 builder.Services.AddCors(options => options.AddDefaultPolicy(policy => policy
     .AllowAnyHeader()
@@ -107,6 +118,8 @@ builder.Services.Configure<AreaCalculationOptions>(
 builder.Services.AddSingleton<GpxAreaExtractor>(isp => new GpxAreaExtractor(
     isp.GetRequiredService<IOptions<AreaCalculationOptions>>().Value, isp.GetRequiredService<ILogger<GpxAreaExtractor>>()));
 
+builder.Services.AddScoped<AchievementManager>();
+
 builder.Services.AddAutoMapper(typeof(GExplorerAutoMapperProfile));
 
 
@@ -116,7 +129,12 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwaggerUI(x =>
+    {
+        x.DefaultModelRendering(ModelRendering.Model);
+        x.DefaultModelsExpandDepth(2);
+        x.DefaultModelExpandDepth(2);
+    });
 }
 
 app.UseHttpsRedirection();

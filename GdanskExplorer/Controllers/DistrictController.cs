@@ -62,7 +62,10 @@ public class DistrictController : ControllerBase
                     };
                 }
             );
-            await _db.Districts.ExecuteDeleteAsync();
+            if (await _db.Districts.AnyAsync())
+            {
+                await _db.Districts.ExecuteDeleteAsync();
+            }
             await _db.Districts.AddRangeAsync(dbDistricts);
             await _db.SaveChangesAsync();
         }

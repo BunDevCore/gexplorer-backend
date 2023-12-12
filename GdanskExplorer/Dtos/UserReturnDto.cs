@@ -9,4 +9,5 @@ public class UserReturnDto
     public List<TripReturnDto> Trips { get; set; } = new();
     public int TripAmount { get; set; }
     public Dictionary<Guid, double> DistrictAreas { get; set; } = null!;
+    public List<AchievementGetDto> Achievements { get; set; } = null!;
 }
