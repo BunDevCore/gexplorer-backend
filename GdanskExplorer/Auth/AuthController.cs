@@ -88,7 +88,7 @@ public partial class AuthController : ControllerBase
                 "Usernames can only consist of letters, numbers and .-_ and be between 4 and 30 characters");
         }
 
-        var newUser = new User
+        var newUser = new User(_db) // this will run the DBContext taking constructor, inserting area entries into the database
         {
             Id = Guid.NewGuid(),
             UserName = dto.UserName,
