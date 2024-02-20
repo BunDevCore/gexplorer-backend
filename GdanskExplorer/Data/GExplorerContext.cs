@@ -56,4 +56,14 @@ public class GExplorerContext : IdentityDbContext<User, IdentityRole<Guid>, Guid
             .Property(x => x.JoinedAt)
             .HasDefaultValueSql("now()");
     }
+    
+    public void InitDistrictAreas(User u)
+    {
+        u.DistrictAreas = Districts.Select(x => new DistrictAreaCacheEntry
+        {
+            UserId = u.Id,
+            Area = 0,
+            DistrictId = x.Id
+        }).ToList();
+    }
 }
