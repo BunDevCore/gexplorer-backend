@@ -88,7 +88,7 @@ public partial class AuthController : ControllerBase
                 "Usernames can only consist of letters, numbers and .-_ and be between 4 and 30 characters");
         }
 
-        var newUser = new User(_db) // this will run the DBContext taking constructor, inserting area entries into the database
+        var newUser = new User()
         {
             Id = Guid.NewGuid(),
             UserName = dto.UserName,
@@ -103,6 +103,10 @@ public partial class AuthController : ControllerBase
         {
             return UnprocessableEntity(result.Errors.Select(e => e.Code));
         }
+        
+        // add district areas to newly created user
+        _db.InitDistrictAreas(newUser);
+        await _db.SaveChangesAsync();
 
         var roleAddResult = await _userManager.AddToRoleAsync(newUser, "User");
 
@@ -110,6 +114,7 @@ public partial class AuthController : ControllerBase
         {
             return UnprocessableEntity(roleAddResult.Errors.Select(e => e.Code));
         }
+        
         return Ok(await NewJwt(newUser));
 
         
