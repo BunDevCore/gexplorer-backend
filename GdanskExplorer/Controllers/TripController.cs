@@ -117,7 +117,7 @@ public class TripController : ControllerBase
             await _db.AddRangeAsync(newAreaCacheEntries);
             
 
-            // save everything and return
+            // save all trips
             await _db.AddRangeAsync(dbTrips);
             
             // achievement check
