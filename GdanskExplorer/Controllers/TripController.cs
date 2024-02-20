@@ -64,7 +64,6 @@ public class TripController : ControllerBase
         try
         {
             // todo: run this on another thread
-            // todo: update district caches
 
             // black box magic
             var tripTopologies = _areaExtractor.ProcessGpx(newTrip.GpxContents.AsUtf8Stream());
