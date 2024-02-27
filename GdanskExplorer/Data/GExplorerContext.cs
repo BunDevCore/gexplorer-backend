@@ -31,6 +31,10 @@ public class GExplorerContext : IdentityDbContext<User, IdentityRole<Guid>, Guid
 
         modelBuilder.Entity<AchievementGet>()
             .HasKey(x => new { x.UserId, x.AchievementId });
+
+        modelBuilder.Entity<AchievementGet>()
+            .HasOne<Trip>(x => x.AchievedOnTrip)
+            .WithMany(x => x.NewAchievements);
         
         modelBuilder.Entity<User>()
             .HasMany<Achievement>(x => x.Achievements)
