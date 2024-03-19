@@ -155,10 +155,13 @@ public class TripController : ControllerBase
             return NotFound();
         }
         
+        // load user separately instead of through .Include on the top level IQueryable because i can't be bothered to implement SimplifyUser properly
+        // so it works with non User IQueryables
         var user = await _db.Entry(trip).Reference(x => x.User).Query().SimplifyUser().FirstAsync();
         _logger.LogDebug("got trip owner = {User}", user);
         trip.User = user;
 
+        // i messed about with the fields but let's just convince EF nothing happened
         _db.Entry(trip).State = EntityState.Unchanged;
         _db.Entry(user).State = EntityState.Unchanged;
 
