@@ -69,6 +69,18 @@ public class TripController : ControllerBase
             var tripTopologies = _areaExtractor.ProcessGpx(newTrip.GpxContents.AsUtf8Stream());
             var uploadTime = DateTime.UtcNow;
 
+            // compute all the trips together
+            var unifiedTripArea = tripTopologies.Aggregate(
+                MultiPolygon.Empty as Geometry,
+                (current, topologyInfo) =>
+                    current.Union(topologyInfo.AreaPolygon));
+            
+            // add them to user overall area and update the amount
+            var oldOverallAreaAmount = user.OverallAreaAmount;
+            var oldOverallArea = user.OverallArea;
+            user.OverallArea = user.OverallArea.Union(unifiedTripArea).AsMultiPolygon();
+            user.OverallAreaAmount = user.OverallArea.Area;
+            
             // convert to database entities
             var dbTrips = tripTopologies.Select(topology =>
                 new Trip
@@ -81,18 +93,9 @@ public class TripController : ControllerBase
                     UploadTime = uploadTime,
                     Area = topology.AreaPolygon.Area,
                     Length = topology.LocalLinestring.Length,
+                    NewArea = topology.AreaPolygon.Difference(oldOverallArea).Area
                 }
             ).ToList();
-
-            // compute all the trips together
-            var unifiedTripArea = tripTopologies.Aggregate(
-                MultiPolygon.Empty as Geometry,
-                (current, topologyInfo) =>
-                    current.Union(topologyInfo.AreaPolygon));
-
-            // add them to user overall area and update the amount
-            user.OverallArea = user.OverallArea.Union(unifiedTripArea).AsMultiPolygon();
-            user.OverallAreaAmount = user.OverallArea.Area;
 
             // update district caches
             // ReSharper disable once EntityFramework.NPlusOne.IncompleteDataQuery
@@ -124,7 +127,12 @@ public class TripController : ControllerBase
             await _db.Entry(user).Collection<Achievement>(x => x.Achievements).LoadAsync();
             var remainingAchievements = _db.Achievements.Where(a => !user.Achievements.Contains(a)).ToList();
 
-            var newAchievements = _achievementMgr.CheckUser(remainingAchievements, user).ToList();
+            var newAchievements = _achievementMgr.CheckUser(remainingAchievements, user).Select(
+                x =>
+                {
+                    x.AchievedOnTripId = dbTrips.Last().Id;
+                    return x;
+                }).ToList();
             await _db.AddRangeAsync(newAchievements);
             
             await _db.SaveChangesAsync();
