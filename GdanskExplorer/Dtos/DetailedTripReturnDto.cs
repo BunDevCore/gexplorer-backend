@@ -11,4 +11,7 @@ public class DetailedTripReturnDto
 
     [JsonConverter(typeof(GeometryJsonConverter))]
     public Geometry GpsPolygon { get; set; } = null!;
+    
+    public double NewArea { get; set; }
+    public List<AchievementGetDto> NewAchievements { get; set; } = new();
 }
