@@ -8,6 +8,7 @@ public class DetailedTripReturnDto
     public Guid Id { get; set; }
     public ShortUserReturnDto User { get; set; } = null!;
     public double Area { get; set; }
+    public double Length { get; set; }
 
     [JsonConverter(typeof(GeometryJsonConverter))]
     public Geometry GpsPolygon { get; set; } = null!;
