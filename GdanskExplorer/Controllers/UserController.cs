@@ -79,4 +79,20 @@ public class UserController : ControllerBase
         poly.Apply(_reproject.Reversed());
         return Ok(poly);
     }
+    
+    [HttpGet("id/{username}/polygon")]
+    public async Task<ActionResult<Geometry>> GetPolygonForUsername(string username)
+    {
+        // ReSharper disable once EntityFramework.NPlusOne.IncompleteDataQuery
+        var user = await _db.Users.Where(x => x.UserName == username).FirstOrDefaultAsync();
+        if (user is null)
+        {
+            return NotFound();
+        }
+        
+        // ReSharper disable once EntityFramework.NPlusOne.IncompleteDataUsage
+        var poly = user.OverallArea.Copy();
+        poly.Apply(_reproject.Reversed());
+        return Ok(poly);
+    }
 }
