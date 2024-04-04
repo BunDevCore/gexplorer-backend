@@ -15,4 +15,8 @@ public class DetailedTripReturnDto
     
     public double NewArea { get; set; }
     public List<AchievementGetDto> NewAchievements { get; set; } = new();
+    
+    public DateTime UploadTime { get; set; }
+    public DateTime StartTime { get; set; }
+    public DateTime EndTime { get; set; }
 }
