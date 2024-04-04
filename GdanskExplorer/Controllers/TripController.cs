@@ -211,6 +211,7 @@ public class TripController : ControllerBase
 
         trip.Starred = starred.Starred;
 
-        return Ok();
+        await _db.SaveChangesAsync();
+        return Ok(_mapper.Map<TripReturnDto>(trip));
     }
 }
