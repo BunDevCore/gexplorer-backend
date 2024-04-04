@@ -15,6 +15,8 @@ public class Trip
     public double Area { get; set; }
     public double Length { get; set; }
     public DateTime UploadTime { get; set; }
-    public List<AchievementGet> NewAchievements { get; set; }
+    public DateTime StartTime { get; set; }
+    public DateTime EndTime { get; set; }
+    public List<AchievementGet> NewAchievements { get; set; } = new();
     public double NewArea { get; set; }
 }
