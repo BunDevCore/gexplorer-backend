@@ -9,4 +9,6 @@ public class Achievement
     public List<User> Achievers { get; set; } = new();
     
     public Geometry? Target { get; set; } = Polygon.Empty;
+
+    public bool IsSecret { get; set; } = false;
 }
