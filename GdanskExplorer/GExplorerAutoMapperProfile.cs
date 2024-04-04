@@ -33,5 +33,10 @@ public class GExplorerAutoMapperProfile : Profile
 
         CreateMap(typeof(LeaderboardEntry<,>), typeof(LeaderboardEntryDto<>))
             .ConvertUsing(typeof(LeaderboardEntryConverter<>));
+
+        CreateMap<Achievement, AchievementDetailsDto>()
+            .ForMember(x => x.AchievedCount,
+                opt => opt.MapFrom(x =>
+                    x.Achievers.Count));
     }
 }
