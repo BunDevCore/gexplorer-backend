@@ -56,8 +56,6 @@ public class AchievementController : ControllerBase
         {
             return NotFound();
         }
-
-        return Ok(_mapper.Map<AchievementDetailsDto>(achievement));
     }
     
 
