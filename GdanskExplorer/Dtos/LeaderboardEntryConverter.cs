@@ -1,5 +1,4 @@
 using AutoMapper;
-using GdanskExplorer.Data;
 
 namespace GdanskExplorer.Dtos;
 

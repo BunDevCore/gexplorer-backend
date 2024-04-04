@@ -4,12 +4,10 @@ using DotSpatial.Projections;
 using GdanskExplorer.Data;
 using GdanskExplorer.Dtos;
 using GdanskExplorer.Topology;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using NetTopologySuite.Geometries;
-using Swashbuckle.AspNetCore.Annotations;
 
 namespace GdanskExplorer.Controllers;
 
@@ -19,15 +17,13 @@ public class UserController : ControllerBase
     private readonly GExplorerContext _db;
     private readonly IMapper _mapper;
     private readonly DotSpatialReprojector _reproject;
-    private readonly IOptions<AreaCalculationOptions> _areaOptions;
 
     public UserController(GExplorerContext db, IMapper mapper, IOptions<AreaCalculationOptions> areaOptions)
     {
         _db = db;
         _mapper = mapper;
-        _areaOptions = areaOptions;
         _reproject = new DotSpatialReprojector(ProjectionInfo.FromEpsgCode(4326),
-            ProjectionInfo.FromEpsgCode(_areaOptions.Value.CommonAreaSrid));
+            ProjectionInfo.FromEpsgCode(areaOptions.Value.CommonAreaSrid));
     }
 
     private async Task<ActionResult<UserReturnDto>> HandleSearch(Expression<Func<User, bool>> condition)

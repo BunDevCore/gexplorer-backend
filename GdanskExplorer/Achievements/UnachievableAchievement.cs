@@ -1,5 +1,4 @@
 using GdanskExplorer.Data;
-using NetTopologySuite.Geometries;
 
 namespace GdanskExplorer.Achievements;
 

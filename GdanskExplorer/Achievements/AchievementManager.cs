@@ -1,4 +1,3 @@
-using AutoMapper;
 using GdanskExplorer.Data;
 
 namespace GdanskExplorer.Achievements;
@@ -6,14 +5,10 @@ namespace GdanskExplorer.Achievements;
 public class AchievementManager
 {
     private readonly GExplorerContext _db;
-    private readonly ILogger<AchievementManager> _logger;
-    private readonly IMapper _mapper;
 
-    public AchievementManager(GExplorerContext db, ILogger<AchievementManager> logger, IMapper mapper)
+    public AchievementManager(GExplorerContext db)
     {
         _db = db;
-        _logger = logger;
-        _mapper = mapper;
     }
 
     // possible custom logic for mapping achievement ids to specific classes will go in this method later

@@ -10,10 +10,11 @@ public sealed class DotSpatialReprojector : NetTopologySuite.Geometries.ICoordin
     public int SrcSrid => _src.AuthorityCode;
     public int DestSrid => _dest.AuthorityCode;
     
+    // ReSharper disable once InconsistentNaming
     public double[] XY = new double[2];
     public double[] Z = new double[1];
-    public bool SwizzleOutput = false;
-    public bool SwizzleInput = false;
+    public bool SwizzleOutput;
+    public bool SwizzleInput;
 
 
     public DotSpatialReprojector(ProjectionInfo src, ProjectionInfo dest, bool swizzleInput = false, bool swizzleOutput = false)

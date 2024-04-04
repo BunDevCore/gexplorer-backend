@@ -1,11 +1,11 @@
 namespace GdanskExplorer.Dtos;
 
-public class LeaderboardEntry<V, T>
+public class LeaderboardEntry<TV, TUser>
 {
-    public T Inner { get; set; } = default!;
+    public TUser Inner { get; set; } = default!;
     public long Rank { get; set; }
 
-    public V Value { get; set; } = default!;
+    public TV Value { get; set; } = default!;
 
     public override string ToString()
     {

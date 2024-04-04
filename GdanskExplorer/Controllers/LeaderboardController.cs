@@ -34,6 +34,8 @@ public class LeaderboardController : ControllerBase
     [HttpGet("overall/{page:int}")]
     public Dictionary<long, LeaderboardEntryDto<double>> OverallAreaWithPage(int page)
     {
+        _logger.LogDebug("getting overall leaderboard page {Page}", page);
+        
         var leaderboard = _db.Users.SimplifyUser()
             .Select(x => new LeaderboardEntry<double, ShortUserReturnDto>
             {
@@ -58,6 +60,8 @@ public class LeaderboardController : ControllerBase
     public async Task<ActionResult<Dictionary<long, LeaderboardEntryDto<double>>>> PerDistrictWithPage(Guid id,
         int page)
     {
+        _logger.LogDebug("getting district {District} leaderboard page {Page}", id, page);
+        
         var district = await _db.Districts.FindAsync(id);
 
         if (district is null)
@@ -102,7 +106,7 @@ public class LeaderboardController : ControllerBase
             var rank = await _db.Database.SqlQuery<long>(query).FirstAsync();
             return rank;
         }
-        catch (InvalidOperationException e)
+        catch (InvalidOperationException)
         {
             return NotFound();
         }
@@ -134,7 +138,7 @@ public class LeaderboardController : ControllerBase
             var rank = await _db.Database.SqlQuery<long>(query).FirstAsync();
             return rank;
         }
-        catch (InvalidOperationException e)
+        catch (InvalidOperationException)
         {
             return NotFound();
         }

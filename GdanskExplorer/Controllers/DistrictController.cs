@@ -1,6 +1,5 @@
 using System.Text.Json;
 using AutoMapper;
-using AutoMapper.QueryableExtensions;
 using DotSpatial.Projections;
 using GdanskExplorer.Data;
 using GdanskExplorer.Dtos;
@@ -13,8 +12,6 @@ using NetTopologySuite.Features;
 using NetTopologySuite.Geometries;
 using NetTopologySuite.IO;
 using Newtonsoft.Json;
-using Swashbuckle.AspNetCore.Annotations;
-using IConfigurationProvider = AutoMapper.IConfigurationProvider;
 
 namespace GdanskExplorer.Controllers;
 
@@ -23,7 +20,6 @@ public class DistrictController : ControllerBase
 {
     private readonly GExplorerContext _db;
     private readonly IMapper _mapper;
-    private readonly IOptions<AreaCalculationOptions> _options;
     private readonly DotSpatialReprojector _reproject;
 
 
@@ -31,9 +27,8 @@ public class DistrictController : ControllerBase
     {
         _db = db;
         _mapper = mapper;
-        _options = options;
         _reproject = new DotSpatialReprojector(ProjectionInfo.FromEpsgCode(4326),
-            ProjectionInfo.FromEpsgCode(_options.Value.CommonAreaSrid));
+            ProjectionInfo.FromEpsgCode(options.Value.CommonAreaSrid));
     }
 
     [HttpPost("import")]

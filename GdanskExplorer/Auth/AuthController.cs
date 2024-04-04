@@ -136,7 +136,8 @@ public partial class AuthController : ControllerBase
     {
         var claims = await GetClaims(user);
 
-        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["JWTKey"]));
+        // not-null assert valid here because the JWTKey config entry is checked for existence in Program.cs
+        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["JWTKey"]!));
         var token = new JwtSecurityToken(issuer: "geledit-auth",
             audience: "geledit-api",
             expires: DateTime.UtcNow.AddHours(3),

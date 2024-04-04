@@ -76,7 +76,6 @@ public class TripController : ControllerBase
                     current.Union(topologyInfo.AreaPolygon));
             
             // add them to user overall area and update the amount
-            var oldOverallAreaAmount = user.OverallAreaAmount;
             var oldOverallArea = user.OverallArea;
             user.OverallArea = user.OverallArea.Union(unifiedTripArea).AsMultiPolygon();
             user.OverallAreaAmount = user.OverallArea.Area;
