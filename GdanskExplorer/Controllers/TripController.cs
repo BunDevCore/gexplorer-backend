@@ -171,7 +171,7 @@ public class TripController : ControllerBase
         return Ok(_mapper.Map<DetailedTripReturnDto>(trip));
     }
 
-    [HttpPost("id/{guid:guid}")]
+    [HttpPost("id/{guid:guid}/star")]
     public async Task<ActionResult<DetailedTripReturnDto>> SetStarred([FromRoute] Guid guid, [FromBody] StarStatusDto starred)
     {
         var user = await _userManager.GetUserAsync(User);
