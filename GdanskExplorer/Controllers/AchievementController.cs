@@ -3,6 +3,7 @@ using GdanskExplorer.Data;
 using GdanskExplorer.Dtos;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace GdanskExplorer.Controllers;
 
@@ -12,7 +13,6 @@ public class AchievementController : ControllerBase
     private readonly GExplorerContext _db;
     private readonly IMapper _mapper;
     private readonly UserManager<User> _userManager;
-
 
 
     public AchievementController(GExplorerContext db, IMapper mapper, UserManager<User> userManager)
@@ -28,7 +28,18 @@ public class AchievementController : ControllerBase
         return _db.Achievements.Where(x => !x.IsSecret).Select(x => x.Id);
     }
 
-    [HttpGet("{achievementId}")]
+    [HttpGet("recent")]
+    public ActionResult<AchievementGetDto> GetRecentAchievements()
+    {
+        var query = _db.AchievementGets
+            .Include(x => x.Achievement)
+            .Where(x => !x.Achievement.IsSecret)
+            .OrderByDescending(x => x.TimeAchieved)
+            .Take(10);
+        return Ok(_mapper.ProjectTo<AchievementGetDto>(query));
+    }
+
+    [HttpGet("id/{achievementId}")]
     public async Task<ActionResult<AchievementDetailsDto>> GetAchievementDetails(string achievementId)
     {
         var achievement = await _db.Achievements.FindAsync(achievementId);
@@ -40,7 +51,7 @@ public class AchievementController : ControllerBase
 
         // regular achievement, just go return it like a sane person
         if (!achievement.IsSecret) return Ok(_mapper.Map<AchievementDetailsDto>(achievement));
-        
+
         // shh! don't show secret achievements to someone who hasn't already gotten them...
         try
         {
@@ -57,6 +68,4 @@ public class AchievementController : ControllerBase
             return NotFound();
         }
     }
-    
-
 }
