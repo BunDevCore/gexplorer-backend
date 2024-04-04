@@ -92,7 +92,9 @@ public class TripController : ControllerBase
                     UploadTime = uploadTime,
                     Area = topology.AreaPolygon.Area,
                     Length = topology.LocalLinestring.Length,
-                    NewArea = topology.AreaPolygon.Difference(oldOverallArea).Area
+                    NewArea = topology.AreaPolygon.Difference(oldOverallArea).Area,
+                    StartTime = topology.StartTime,
+                    EndTime = topology.EndTime
                 }
             ).ToList();
 
