@@ -19,4 +19,5 @@ public class Trip
     public DateTime EndTime { get; set; }
     public List<AchievementGet> NewAchievements { get; set; } = new();
     public double NewArea { get; set; }
+    public bool Starred { get; set; }
 }

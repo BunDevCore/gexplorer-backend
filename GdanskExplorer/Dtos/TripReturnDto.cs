@@ -10,4 +10,5 @@ public class TripReturnDto
     public DateTime StartTime { get; set; }
     public DateTime EndTime { get; set; }
     public DateTime UploadTime { get; set; }
+    public bool Starred { get; set; }
 }
