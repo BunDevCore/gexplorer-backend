@@ -170,4 +170,31 @@ public class TripController : ControllerBase
         
         return Ok(_mapper.Map<DetailedTripReturnDto>(trip));
     }
+
+    [HttpPost("id/{guid:guid}")]
+    public async Task<ActionResult<DetailedTripReturnDto>> SetStarred([FromRoute] Guid guid, [FromBody] StarStatusDto starred)
+    {
+        var user = await _userManager.GetUserAsync(User);
+
+        if (user is null)
+        {
+            return Unauthorized();
+        }
+        
+        var trip = await _db.Trips.Include(x => x.User).FirstOrDefaultAsync(x => x.Id == guid);
+
+        if (trip == null)
+        {
+            return NotFound();
+        }
+
+        if (trip.User.Id == user.Id)
+        {
+            return Forbid();
+        }
+
+        trip.Starred = starred.Starred;
+
+        return Ok();
+    }
 }
