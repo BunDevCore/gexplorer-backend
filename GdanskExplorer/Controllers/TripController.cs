@@ -146,6 +146,22 @@ public class TripController : ControllerBase
         }
     }
 
+
+    [HttpGet("starred")]
+    public async Task<ActionResult<DetailedTripReturnDto>> GetStarred()
+    {
+        var user = await _userManager.GetUserAsync(User);
+
+        if (user is null)
+        {
+            return Unauthorized();
+        }
+
+        return Ok(_mapper.ProjectTo<TripReturnDto>(_db.Trips
+            .Where(x => x.User.Id == user.Id)
+            .Where(x => x.Starred)));
+    }
+
     [HttpGet("id/{guid:guid}")]
     public async Task<ActionResult<DetailedTripReturnDto>> GetById([FromRoute] Guid guid)
     {
@@ -188,7 +204,7 @@ public class TripController : ControllerBase
             return NotFound();
         }
 
-        if (trip.User.Id == user.Id)
+        if (trip.User.Id != user.Id)
         {
             return Forbid();
         }
