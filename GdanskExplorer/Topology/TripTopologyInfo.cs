@@ -10,13 +10,17 @@ public class TripTopologyInfo
     
     public Polygon AreaPolygon;
     public LineString LocalLinestring;
+    public DateTime StartTime;
+    public DateTime EndTime;
     
 
-    public TripTopologyInfo(LineString gpsPath, Polygon gpsPolygon, Polygon areaPolygon, LineString localLinestring)
+    public TripTopologyInfo(LineString gpsPath, Polygon gpsPolygon, Polygon areaPolygon, LineString localLinestring, DateTime startTime, DateTime endTime)
     {
         GpsPath = gpsPath;
         GpsPolygon = gpsPolygon;
         AreaPolygon = areaPolygon;
         LocalLinestring = localLinestring;
+        StartTime = startTime;
+        EndTime = endTime;
     }
 }

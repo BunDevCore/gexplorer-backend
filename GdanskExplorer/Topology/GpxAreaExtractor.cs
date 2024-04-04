@@ -31,16 +31,29 @@ public class GpxAreaExtractor
             IgnoreUnexpectedChildrenOfTopLevelElement = true,
         });
 
-        _log.LogDebug("found {tracks} tracks in gpx file", gpx.Tracks.Count);
+        _log.LogDebug("found {NumTracks} tracks in gpx file", gpx.Tracks.Count);
 
         var polygons = gpx.Tracks.SelectMany(track => track.Segments).Select(segment =>
         {
-            _log.LogDebug("converting track segment ({numWaypoints} waypoints)", segment.Waypoints.Count);
-            
+            var startTime = segment.Waypoints.FirstOrDefault()?.TimestampUtc;
+            if (!startTime.HasValue)
+            {
+                throw new TimeRequiredException("GPX track segment start point must have a timestamp!");
+            }
+
+            var endTime = segment.Waypoints.LastOrDefault()?.TimestampUtc;
+            if (!endTime.HasValue)
+            {
+                throw new TimeRequiredException("GPX track segment end point must have a timestamp!");
+            }
+
+            _log.LogDebug("converting track segment ({NumWaypoints} waypoints)", segment.Waypoints.Count);
+
             var gpsLinestring = _gpsFactory.CreateLineString(segment.Waypoints.Select(x =>
                 new Coordinate(x.Longitude, x.Latitude)).ToArray());
 
-            var fullBufferLinestring = gpsLinestring.Copy() as LineString ?? throw new InvalidOperationException("buffer linestring is null");
+            var fullBufferLinestring = gpsLinestring.Copy() as LineString ??
+                                       throw new InvalidOperationException("buffer linestring is null");
             fullBufferLinestring.Apply(_reprojectBuffer);
 
             var bufferLinestring = SimplifyLinestring(fullBufferLinestring);
@@ -50,7 +63,7 @@ public class GpxAreaExtractor
 
             var bufferedPolygon = bufferLinestring.Buffer(_options.BufferRadius) as Polygon;
 
-            _log.LogDebug("polygon is null? {isNull}", bufferedPolygon == null);
+            _log.LogDebug("polygon is null? {IsNull}", bufferedPolygon == null);
 
             var gpsPolygon = bufferedPolygon?.Copy() as Polygon;
             gpsPolygon?.Apply(_reprojectBuffer.Reversed());
@@ -66,7 +79,7 @@ public class GpxAreaExtractor
             {
                 throw new InvalidOperationException("buffer polygon somehow ended up null");
             }
-            
+
             if (areaPolygon is null)
             {
                 throw new InvalidOperationException("area polygon somehow ended up null");
@@ -76,10 +89,11 @@ public class GpxAreaExtractor
             {
                 throw new InvalidOperationException("gps polygon somehow ended up null");
             }
-            
-            return new TripTopologyInfo(gpsLinestring, gpsPolygon, areaPolygon, bufferLinestring);
+
+            // these can be "null-asserted" by using .Value because they are explicitly checked at the beginning
+            return new TripTopologyInfo(gpsLinestring, gpsPolygon, areaPolygon, bufferLinestring, startTime.Value, endTime.Value);
         });
-        
+
         return polygons.ToArray();
     }
 
@@ -96,6 +110,7 @@ public class GpxAreaExtractor
                 newCoords.Add(coord);
             }
         }
+
         return new LineString(newCoords.ToArray());
     }
 }
