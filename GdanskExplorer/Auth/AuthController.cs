@@ -44,7 +44,7 @@ public partial class AuthController : ControllerBase
     [HttpPost("login")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> Login([FromBody] LoginDto dto, bool wrapInQuotes = false)
+    public async Task<IActionResult> Login([FromBody] LoginDto dto, bool wrapInObject = false)
     {
         _log.LogInformation("new login attempt for {User}", dto.UserName);
         if (!ModelState.IsValid)
@@ -68,9 +68,12 @@ public partial class AuthController : ControllerBase
         }
 
         var token = await NewJwt(user);
-        if (wrapInQuotes)
+        if (wrapInObject)
         {
-            token = $"\"{token}\"";
+            return Ok(new Dictionary<string, string>
+            {
+                {"token", token}
+            });
         }
         return Ok(token);
     }
