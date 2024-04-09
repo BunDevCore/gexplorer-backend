@@ -74,12 +74,12 @@ public class TripController : ControllerBase
                 MultiPolygon.Empty as Geometry,
                 (current, topologyInfo) =>
                     current.Union(topologyInfo.AreaPolygon));
-            
+
             // add them to user overall area and update the amount
             var oldOverallArea = user.OverallArea;
             user.OverallArea = user.OverallArea.Union(unifiedTripArea).AsMultiPolygon();
             user.OverallAreaAmount = user.OverallArea.Area;
-            
+
             // convert to database entities
             var dbTrips = tripTopologies.Select(topology =>
                 new Trip
@@ -115,15 +115,16 @@ public class TripController : ControllerBase
             // purge all the previous ones for this user /shrug
             if (await _db.DistrictAreaCacheEntries.AnyAsync(x => x.UserId == user.Id))
             {
-                await _db.DistrictAreaCacheEntries.Where(x => x.UserId == user.Id).ExecuteDeleteAsync(); 
+                await _db.DistrictAreaCacheEntries.Where(x => x.UserId == user.Id).ExecuteDeleteAsync();
             }
+
             // add new ones
             await _db.AddRangeAsync(newAreaCacheEntries);
-            
+
 
             // save all trips
             await _db.AddRangeAsync(dbTrips);
-            
+
             // achievement check
             await _db.Entry(user).Collection<Achievement>(x => x.Achievements).LoadAsync();
             var remainingAchievements = _db.Achievements.Where(a => !user.Achievements.Contains(a)).ToList();
@@ -135,14 +136,17 @@ public class TripController : ControllerBase
                     return x;
                 }).ToList();
             await _db.AddRangeAsync(newAchievements);
-            
+
             await _db.SaveChangesAsync();
             return Ok(_mapper.Map<IEnumerable<TripReturnDto>>(dbTrips));
         }
         catch (XmlException e)
         {
-            //todo: make this not spit stack traces on prod
-            return BadRequest($"invalid GPX syntax: {e}");
+            return BadRequest(_mapper.Map<GpxImportErrorDto>(GpxImportErrorKind.SyntaxError));
+        }
+        catch (TimeRequiredException)
+        {
+            return BadRequest(_mapper.Map<GpxImportErrorDto>(GpxImportErrorKind.TimeRequired));
         }
     }
 

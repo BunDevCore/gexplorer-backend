@@ -22,7 +22,7 @@ public class GExplorerAutoMapperProfile : Profile
         CreateMap<User, UserReturnDto>()
             .ForMember(x => x.Trips,
                 opt => opt.MapFrom(x =>
-                    x.Trips.Take(10)))
+                    x.Trips.Take(50).OrderByDescending(t => t.StartTime)))
             .ForMember(x => x.DistrictAreas,
                 opt => opt.MapFrom(x => 
                     x.DistrictAreas.ToDictionary(dace => dace.DistrictId, dace => dace.Area)))
@@ -38,5 +38,9 @@ public class GExplorerAutoMapperProfile : Profile
             .ForMember(x => x.AchievedCount,
                 opt => opt.MapFrom(x =>
                     x.Achievers.Count));
+
+        CreateMap<GpxImportErrorKind, GpxImportErrorDto>()
+            .ForMember(x => x.Cause, opt => opt.MapFrom(x =>
+                x.ToString()));
     }
 }
