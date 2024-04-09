@@ -42,8 +42,8 @@ public class LeaderboardController : ControllerBase
                 Value = x.OverallAreaAmount,
                 Inner = _mapper.Map<ShortUserReturnDto>(x),
                 Rank = EF.Functions.Rank(EF.Functions.Over()
-                    .OrderByDescending(x.OverallAreaAmount)
-                    .OrderByDescending(x.Id))
+                    .OrderBy(x.OverallAreaAmount)
+                    .OrderBy(x.Id))
             }).Page(PageSize, page);
 
         return leaderboard.ToDictionary(x => x.Rank,
@@ -80,10 +80,10 @@ public class LeaderboardController : ControllerBase
                         .Sum(dace => dace.Area), // there's only one, but it plays nicely with ef core to just sum them
                 Inner = _mapper.Map<ShortUserReturnDto>(x), // map user object
                 Rank = EF.Functions.Rank(EF.Functions.Over()
-                    .OrderByDescending(x.DistrictAreas
+                    .OrderBy(x.DistrictAreas
                         .Where(dace => dace.DistrictId == id) // same deal as before
                         .Sum(dace => dace.Area))
-                    .ThenByDescending(x.Id))
+                    .ThenBy(x.Id))
             }).Page(PageSize, page);
 
         return leaderboard.ToDictionary(x => x.Rank,
