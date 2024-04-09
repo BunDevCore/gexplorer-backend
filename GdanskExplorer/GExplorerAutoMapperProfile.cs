@@ -42,5 +42,7 @@ public class GExplorerAutoMapperProfile : Profile
         CreateMap<GpxImportErrorKind, GpxImportErrorDto>()
             .ForMember(x => x.Cause, opt => opt.MapFrom(x =>
                 x.ToString()));
+
+        CreateMap<DatabaseLeaderboardRow, ShortUserReturnDto>();
     }
 }

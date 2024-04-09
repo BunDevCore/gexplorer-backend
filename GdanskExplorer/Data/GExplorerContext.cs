@@ -29,6 +29,9 @@ public class GExplorerContext : IdentityDbContext<User, IdentityRole<Guid>, Guid
     {
         base.OnModelCreating(modelBuilder);
 
+        // "fake" the dbset here so i can return it in leaderboard queries
+        modelBuilder.Entity<DatabaseLeaderboardRow>().HasNoKey();
+
         modelBuilder.Entity<AchievementGet>()
             .HasKey(x => new { x.UserId, x.AchievementId });
 

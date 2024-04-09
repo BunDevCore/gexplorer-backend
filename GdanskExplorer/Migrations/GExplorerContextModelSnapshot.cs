@@ -61,7 +61,7 @@ namespace GdanskExplorer.Migrations
 
                     b.HasIndex("AchievementId");
 
-                    b.ToTable("AchievementGets");
+                    b.ToTable("AchievementGets", (string)null);
                 });
 
             modelBuilder.Entity("GdanskExplorer.Data.District", b =>
@@ -87,7 +87,7 @@ namespace GdanskExplorer.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Districts");
+                    b.ToTable("Districts", (string)null);
                 });
 
             modelBuilder.Entity("GdanskExplorer.Data.DistrictAreaCacheEntry", b =>
@@ -105,7 +105,7 @@ namespace GdanskExplorer.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("DistrictAreaCacheEntries");
+                    b.ToTable("DistrictAreaCacheEntries", (string)null);
                 });
 
             modelBuilder.Entity("GdanskExplorer.Data.Trip", b =>
@@ -154,7 +154,7 @@ namespace GdanskExplorer.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Trips");
+                    b.ToTable("Trips", (string)null);
                 });
 
             modelBuilder.Entity("GdanskExplorer.Data.User", b =>

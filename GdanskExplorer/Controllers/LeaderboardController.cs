@@ -25,29 +25,36 @@ public class LeaderboardController : ControllerBase
     }
 
     [HttpGet("overall")]
-    public Dictionary<long, LeaderboardEntryDto<double>> OverallAreaNoPage()
+    public Task<Dictionary<long, LeaderboardEntryDto<double>>> OverallAreaNoPage()
     {
         return OverallAreaWithPage(1);
     }
 
 
     [HttpGet("overall/{page:int}")]
-    public Dictionary<long, LeaderboardEntryDto<double>> OverallAreaWithPage(int page)
+    public async Task<Dictionary<long, LeaderboardEntryDto<double>>> OverallAreaWithPage(int page)
     {
         _logger.LogDebug("getting overall leaderboard page {Page}", page);
+
+        FormattableString query = $"""
+                                   SELECT LD.R as "Rank", LD."Id", LD."UserName", LD."OverallAreaAmount", LD."OverallAreaAmount" as "Value", LD."JoinedAt" FROM (
+                                       SELECT a0."Id", a0."JoinedAt", a0."UserName", a0."OverallAreaAmount", RANK() OVER(ORDER BY a0."OverallAreaAmount" DESC, a0."Id" DESC) as R
+                                       FROM "AspNetUsers" AS a0
+                                   ) as LD
+                                   """;
         
-        var leaderboard = _db.Users.SimplifyUser()
+        var leaderboard = await _db.Set<DatabaseLeaderboardRow>()
+            .FromSql(query)
             .Select(x => new LeaderboardEntry<double, ShortUserReturnDto>
             {
-                Value = x.OverallAreaAmount,
                 Inner = _mapper.Map<ShortUserReturnDto>(x),
-                Rank = EF.Functions.Rank(EF.Functions.Over()
-                    .OrderBy(x.OverallAreaAmount)
-                    .OrderBy(x.Id))
-            }).Page(PageSize, page);
+                Rank = x.Rank,
+                Value = x.Value
+            })
+            .ToDictionaryAsync(x => x.Rank, x =>
+            _mapper.Map<LeaderboardEntryDto<double>>(x));
 
-        return leaderboard.ToDictionary(x => x.Rank,
-            x => _mapper.Map<LeaderboardEntryDto<double>>(x));
+        return leaderboard;
     }
 
     [HttpGet("district/{id:guid}")]
@@ -69,25 +76,45 @@ public class LeaderboardController : ControllerBase
             return NotFound();
         }
 
-        var leaderboard = _db.Users
-            .Include(x => x.DistrictAreas) // include district area navigation
-            .SimplifyUser() // do not query every single field ever, *especially* OverallArea to save on bandwidth and db performance
+        FormattableString query = $"""
+                                   SELECT LD."R" as "Rank", LD."Id", LD."UserName", LD."OverallAreaAmount", LD."Area" as "Value", LD."JoinedAt"
+                                   FROM (SELECT U."Id", U."UserName", U."OverallAreaAmount", U."JoinedAt", "Area",
+                                                rank() over (order by "Area" DESC NULLS LAST, "OverallAreaAmount", "Id")                       as "R"
+                                         from "AspNetUsers" as U
+                                                  LEFT JOIN "DistrictAreaCacheEntries" as DACE
+                                                            on DACE."UserId" = U."Id" and
+                                                               DACE."DistrictId" = {district.Id}) as LD
+                                   """;
+        
+        var leaderboard = await _db.Set<DatabaseLeaderboardRow>()
+            .FromSql(query)
             .Select(x => new LeaderboardEntry<double, ShortUserReturnDto>
             {
-                Value =
-                    x.DistrictAreas
-                        .Where(dace => dace.DistrictId == id) // include only relevant entries
-                        .Sum(dace => dace.Area), // there's only one, but it plays nicely with ef core to just sum them
-                Inner = _mapper.Map<ShortUserReturnDto>(x), // map user object
-                Rank = EF.Functions.Rank(EF.Functions.Over()
-                    .OrderBy(x.DistrictAreas
-                        .Where(dace => dace.DistrictId == id) // same deal as before
-                        .Sum(dace => dace.Area))
-                    .ThenBy(x.Id))
-            }).Page(PageSize, page);
+                Inner = _mapper.Map<ShortUserReturnDto>(x),
+                Rank = x.Rank,
+                Value = x.Value
+            })
+            .ToDictionaryAsync(x => x.Rank, x =>
+                _mapper.Map<LeaderboardEntryDto<double>>(x));
 
-        return leaderboard.ToDictionary(x => x.Rank,
-            x => _mapper.Map<LeaderboardEntryDto<double>>(x));
+        // var leaderboard = _db.Users
+        //     .Include(x => x.DistrictAreas) // include district area navigation
+        //     .SimplifyUser() // do not query every single field ever, *especially* OverallArea to save on bandwidth and db performance
+        //     .Select(x => new LeaderboardEntry<double, ShortUserReturnDto>
+        //     {
+        //         Value =
+        //             x.DistrictAreas
+        //                 .Where(dace => dace.DistrictId == id) // include only relevant entries
+        //                 .Sum(dace => dace.Area), // there's only one, but it plays nicely with ef core to just sum them
+        //         Inner = _mapper.Map<ShortUserReturnDto>(x), // map user object
+        //         Rank = EF.Functions.Rank(EF.Functions.Over()
+        //             .OrderByDescending(x.DistrictAreas
+        //                 .Where(dace => dace.DistrictId == id) // same deal as before
+        //                 .Sum(dace => dace.Area) + x.LeaderboardBias)
+        //             .ThenBy(x.Id))
+        //     }).Page(PageSize, page);
+
+        return leaderboard;
     }
 
     [HttpGet("overall/{userId:guid}")]
