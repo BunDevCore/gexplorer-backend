@@ -26,6 +26,7 @@ public class UserController : ControllerBase
             ProjectionInfo.FromEpsgCode(areaOptions.Value.CommonAreaSrid));
     }
 
+    //TODO: this code is really stinky, why?
     private async Task<ActionResult<UserReturnDto>> HandleSearch(Expression<Func<User, bool>> condition)
     {
         var user = await _db.Users
