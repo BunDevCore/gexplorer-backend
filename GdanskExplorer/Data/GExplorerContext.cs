@@ -25,6 +25,10 @@ public class GExplorerContext : IdentityDbContext<User, IdentityRole<Guid>, Guid
     public DbSet<District> Districts { get; set; } = null!;
     public DbSet<DistrictAreaCacheEntry> DistrictAreaCacheEntries { get; set; } = null!;
 
+    public DbSet<Place> Places { get; set; } = null!;
+
+    public DbSet<PlaceVisitedRow> PlaceVisitedRows { get; set; } = null!;
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -62,6 +66,15 @@ public class GExplorerContext : IdentityDbContext<User, IdentityRole<Guid>, Guid
         modelBuilder.Entity<User>()
             .Property(x => x.JoinedAt)
             .HasDefaultValueSql("now()");
+        
+        modelBuilder.Entity<PlaceVisitedRow>()
+            .HasOne<User>(x => x.User)
+            .WithMany(x => x.PlaceRows);
+        
+        modelBuilder.Entity<User>()
+            .HasMany<Place>(x => x.Places)
+            .WithMany(x => x.Users)
+            .UsingEntity<PlaceVisitedRow>();
     }
     
     public void InitDistrictAreas(User u)

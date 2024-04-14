@@ -18,4 +18,6 @@ public class User : IdentityUser<Guid>
     public List<Achievement> Achievements { get; set; } = new();
 
     public List<DistrictAreaCacheEntry> DistrictAreas { get; set; } = new();
+    public List<PlaceVisitedRow> PlaceRows { get; set; } = new();
+    public List<Place> Places { get; set; }
 }
