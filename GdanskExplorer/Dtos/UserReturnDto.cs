@@ -8,6 +8,7 @@ public class UserReturnDto
     public DateTime JoinedAt { get; set; }
     public List<TripReturnDto> Trips { get; set; } = new();
     public int TripAmount { get; set; }
+    public double TotalTripLength { get; set; }
     public Dictionary<Guid, double> DistrictAreas { get; set; } = null!;
     public List<AchievementGetDto> Achievements { get; set; } = null!;
 }

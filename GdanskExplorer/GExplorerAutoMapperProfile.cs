@@ -18,17 +18,19 @@ public class GExplorerAutoMapperProfile : Profile
                     x.GpsGeometry));
 
         CreateMap<AchievementGet, AchievementGetDto>();
-        
+
         CreateMap<User, UserReturnDto>()
             .ForMember(x => x.Trips,
                 opt => opt.MapFrom(x =>
                     x.Trips.Take(50).OrderByDescending(t => t.StartTime)))
             .ForMember(x => x.DistrictAreas,
-                opt => opt.MapFrom(x => 
+                opt => opt.MapFrom(x =>
                     x.DistrictAreas.ToDictionary(dace => dace.DistrictId, dace => dace.Area)))
             .ForMember(x => x.Achievements,
                 opt => opt.MapFrom(x =>
-                    x.AchievementGets));
+                    x.AchievementGets))
+            .ForMember(x => x.TotalTripLength, opt => opt.MapFrom(x =>
+                x.Trips.Sum(t => t.Length)));
         CreateMap<District, ShortDistrictDto>();
 
         CreateMap(typeof(LeaderboardEntry<,>), typeof(LeaderboardEntryDto<>))
