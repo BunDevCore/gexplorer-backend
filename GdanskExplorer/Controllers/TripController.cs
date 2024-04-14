@@ -1,3 +1,5 @@
+using System.Collections.Immutable;
+using System.Text;
 using System.Xml;
 using AutoMapper;
 using GdanskExplorer.Achievements;
@@ -9,6 +11,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using NetTopologySuite.Geometries;
+using NetTopologySuite.IO;
 
 namespace GdanskExplorer.Controllers;
 
@@ -33,6 +36,42 @@ public class TripController : ControllerBase
         _areaExtractor = areaExtractor;
         _mapper = mapper;
         _achievementMgr = achievementMgr;
+    }
+    
+    public class Utf8StringWriter : StringWriter
+    {
+        public override Encoding Encoding
+        {
+            get { return Encoding.UTF8; }
+        }
+    }
+
+    [HttpPost("new/mobile")]
+    public async Task<ActionResult<IEnumerable<TripReturnDto>>> AddMobileTrip([FromBody] MobileNewTripDto newTrip)
+    {
+        await using var sw = new Utf8StringWriter();
+        await using var xmlWriter = XmlWriter.Create(sw, new XmlWriterSettings {Async = true});
+
+        var waypoints = newTrip.Points.Select(point => new GpxWaypoint(
+                coordinate: new Coordinate(point.Longitude, point.Latitude))
+            .WithTimestampUtc(DateTimeOffset.FromUnixTimeMilliseconds(point.Timestamp).UtcDateTime));
+        var segment = new List<GpxTrackSegment> { new GpxTrackSegment().WithWaypoints(waypoints) }.ToImmutableArray();
+        var track = new List<GpxTrack> { new GpxTrack().WithSegments(segment) };
+
+        GpxWriter.Write(writer: xmlWriter,
+            settings: null,
+            metadata: new GpxMetadata("internal"),
+            waypoints: Enumerable.Empty<GpxWaypoint>(),
+            routes: Enumerable.Empty<GpxRoute>(),
+            tracks: track,
+            new { });
+
+        await sw.FlushAsync();
+        sw.Close();
+
+        _logger.LogDebug("generated gpx: {Gpx}", sw.GetStringBuilder().ToString());
+
+    return await AddNewTrip(new NewTripDto {GpxContents = sw.GetStringBuilder().ToString(), User = null});
     }
 
     [HttpPost("new")]
@@ -175,7 +214,7 @@ public class TripController : ControllerBase
         {
             return NotFound();
         }
-        
+
         // load user separately instead of through .Include on the top level IQueryable because i can't be bothered to implement SimplifyUser properly
         // so it works with non User IQueryables
         var user = await _db.Entry(trip).Reference(x => x.User).Query().SimplifyUser().FirstAsync();
@@ -187,12 +226,13 @@ public class TripController : ControllerBase
         _db.Entry(user).State = EntityState.Unchanged;
 
         await _db.SaveChangesAsync();
-        
+
         return Ok(_mapper.Map<DetailedTripReturnDto>(trip));
     }
 
     [HttpPost("id/{guid:guid}/star")]
-    public async Task<ActionResult<DetailedTripReturnDto>> SetStarred([FromRoute] Guid guid, [FromBody] StarStatusDto starred)
+    public async Task<ActionResult<DetailedTripReturnDto>> SetStarred([FromRoute] Guid guid,
+        [FromBody] StarStatusDto starred)
     {
         var user = await _userManager.GetUserAsync(User);
 
@@ -200,7 +240,7 @@ public class TripController : ControllerBase
         {
             return Unauthorized();
         }
-        
+
         var trip = await _db.Trips.Include(x => x.User).FirstOrDefaultAsync(x => x.Id == guid);
 
         if (trip == null)
