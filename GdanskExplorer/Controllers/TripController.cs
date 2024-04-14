@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using System.Text;
 using System.Xml;
 using AutoMapper;
 using GdanskExplorer.Achievements;
@@ -36,12 +37,20 @@ public class TripController : ControllerBase
         _mapper = mapper;
         _achievementMgr = achievementMgr;
     }
+    
+    public class Utf8StringWriter : StringWriter
+    {
+        public override Encoding Encoding
+        {
+            get { return Encoding.UTF8; }
+        }
+    }
 
     [HttpPost("new/mobile")]
     public async Task<ActionResult<IEnumerable<TripReturnDto>>> AddMobileTrip([FromBody] MobileNewTripDto newTrip)
     {
-        var sw = new StringWriter();
-        var xmlWriter = XmlWriter.Create(sw);
+        await using var sw = new Utf8StringWriter();
+        await using var xmlWriter = XmlWriter.Create(sw, new XmlWriterSettings {Async = true});
 
         var waypoints = newTrip.Points.Select(point => new GpxWaypoint(
                 coordinate: new Coordinate(point.Longitude, point.Latitude))
@@ -50,14 +59,19 @@ public class TripController : ControllerBase
         var track = new List<GpxTrack> { new GpxTrack().WithSegments(segment) };
 
         GpxWriter.Write(writer: xmlWriter,
-            settings: new GpxWriterSettings(),
+            settings: null,
             metadata: new GpxMetadata("internal"),
             waypoints: Enumerable.Empty<GpxWaypoint>(),
             routes: Enumerable.Empty<GpxRoute>(),
             tracks: track,
             new { });
 
-        return await AddNewTrip(new NewTripDto {GpxContents = sw.ToString(), User = null});
+        await sw.FlushAsync();
+        sw.Close();
+
+        _logger.LogDebug("generated gpx: {Gpx}", sw.GetStringBuilder().ToString());
+
+    return await AddNewTrip(new NewTripDto {GpxContents = sw.GetStringBuilder().ToString(), User = null});
     }
 
     [HttpPost("new")]
