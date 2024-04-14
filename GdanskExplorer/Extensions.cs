@@ -39,6 +39,9 @@ public static class Extensions
                 DistrictAreas = x.DistrictAreas,
                 Achievements = x.Achievements,
                 AchievementGets = x.AchievementGets,
-                Trips = x.Trips
+                Trips = x.Trips,
+                Email = x.Email,
+                Places = x.Places,
+                PlaceRows = x.PlaceRows
             });
 }

@@ -46,5 +46,9 @@ public class GExplorerAutoMapperProfile : Profile
                 x.ToString()));
 
         CreateMap<DatabaseLeaderboardRow, ShortUserReturnDto>();
+
+        CreateMap<PlaceVisitedRow, PlaceStateReturnDto>()
+            .ForMember(x => x.Id, opt => opt.MapFrom(
+                x => x.PlaceId));
     }
 }
