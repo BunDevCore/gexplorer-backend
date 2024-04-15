@@ -66,12 +66,14 @@ public class TripController : ControllerBase
             tracks: track,
             new { });
 
-        await sw.FlushAsync();
+        sw.Flush();
+        xmlWriter.Flush();
+        xmlWriter.Close();
         sw.Close();
+        var gpxContents = sw.GetStringBuilder().ToString();
+        var result = await AddNewTrip(new NewTripDto {GpxContents = gpxContents, User = null});
 
-        _logger.LogDebug("generated gpx: {Gpx}", sw.GetStringBuilder().ToString());
-
-    return await AddNewTrip(new NewTripDto {GpxContents = sw.GetStringBuilder().ToString(), User = null});
+        return result;
     }
 
     [HttpPost("new")]
