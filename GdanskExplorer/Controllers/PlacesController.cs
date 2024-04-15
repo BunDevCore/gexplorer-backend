@@ -36,7 +36,7 @@ public class PlacesController : ControllerBase
     }
     
     [Authorize]
-    [HttpGet("/id/{id}")]
+    [HttpGet("id/{id}")]
     public async Task<ActionResult<IEnumerable<PlaceStateReturnDto>>> GetPlaceStatesById(string id)
     {
         var userId = _userManager.GetUserId(User)!;
