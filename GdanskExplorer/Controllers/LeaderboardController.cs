@@ -118,7 +118,7 @@ public class LeaderboardController : ControllerBase
     }
 
     [HttpGet("overall/{userId:guid}")]
-    public async Task<ActionResult<long>> GetOverallRankForId(Guid userId)
+    public async Task<ActionResult<LeaderboardRankDto>> GetOverallRankForId(Guid userId)
     {
         FormattableString query = $"""
                                     SELECT LD.R as "Value" FROM (
@@ -131,7 +131,7 @@ public class LeaderboardController : ControllerBase
         try
         {
             var rank = await _db.Database.SqlQuery<long>(query).FirstAsync();
-            return rank;
+            return new LeaderboardRankDto {Rank = rank};
         }
         catch (InvalidOperationException)
         {
@@ -140,7 +140,7 @@ public class LeaderboardController : ControllerBase
     }
     
     [HttpGet("district/{districtId:guid}/{userId:guid}")]
-    public async Task<ActionResult<long>> GetDistrictRankForId(Guid districtId, Guid userId)
+    public async Task<ActionResult<LeaderboardRankDto>> GetDistrictRankForId(Guid districtId, Guid userId)
     {
         var district = await _db.Districts.FindAsync(districtId);
 
@@ -163,11 +163,16 @@ public class LeaderboardController : ControllerBase
         try
         {
             var rank = await _db.Database.SqlQuery<long>(query).FirstAsync();
-            return rank;
+            return new LeaderboardRankDto {Rank = rank};
         }
         catch (InvalidOperationException)
         {
             return NotFound();
         }
     }
+}
+
+public class LeaderboardRankDto
+{
+    public long Rank { get; set; }
 }
