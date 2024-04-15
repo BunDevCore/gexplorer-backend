@@ -24,7 +24,8 @@ public class AchievementController : ControllerBase
     private readonly DotSpatialReprojector _reproject;
 
 
-    public AchievementController(GExplorerContext db, IMapper mapper, UserManager<User> userManager, IOptions<AreaCalculationOptions> options)
+    public AchievementController(GExplorerContext db, IMapper mapper, UserManager<User> userManager,
+        IOptions<AreaCalculationOptions> options)
     {
         _db = db;
         _mapper = mapper;
@@ -34,9 +35,15 @@ public class AchievementController : ControllerBase
     }
 
     [HttpGet("")]
-    public IEnumerable<string> GetAll()
+    public async Task<AchievementListDto> GetAll()
     {
-        return _db.Achievements.Where(x => !x.IsSecret).Select(x => x.Id);
+        var achievements = await _db.Achievements.Where(x => !x.IsSecret).Select(x => x.Id)
+            .ToListAsync();
+        return new AchievementListDto
+        {
+            Achievements = achievements,
+            AchievementCount = achievements.Count
+        };
     }
 
     [HttpGet("recent")]
@@ -96,7 +103,7 @@ public class AchievementController : ControllerBase
         {
             return BadRequest("bad GeoJSON body!");
         }
-        
+
         if (fc is null)
         {
             return BadRequest("could not read feature collection for unknown reason");
@@ -107,7 +114,7 @@ public class AchievementController : ControllerBase
             var achievements = fc.AsParallel().Select(FeatureToAchievement);
             await _db.Achievements.AddRangeAsync(achievements);
             await _db.SaveChangesAsync();
-        
+
             return Ok(_db.Achievements.Select(x => x.Id));
         }
         catch (InvalidDataException e)
