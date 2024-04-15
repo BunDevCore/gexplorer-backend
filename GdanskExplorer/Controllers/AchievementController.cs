@@ -1,9 +1,17 @@
+using System.Text.Json;
 using AutoMapper;
+using DotSpatial.Projections;
 using GdanskExplorer.Data;
 using GdanskExplorer.Dtos;
+using GdanskExplorer.Topology;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
+using NetTopologySuite.Features;
+using NetTopologySuite.IO;
+using Newtonsoft.Json;
 
 namespace GdanskExplorer.Controllers;
 
@@ -13,13 +21,16 @@ public class AchievementController : ControllerBase
     private readonly GExplorerContext _db;
     private readonly IMapper _mapper;
     private readonly UserManager<User> _userManager;
+    private readonly DotSpatialReprojector _reproject;
 
 
-    public AchievementController(GExplorerContext db, IMapper mapper, UserManager<User> userManager)
+    public AchievementController(GExplorerContext db, IMapper mapper, UserManager<User> userManager, IOptions<AreaCalculationOptions> options)
     {
         _db = db;
         _mapper = mapper;
         _userManager = userManager;
+        _reproject = new DotSpatialReprojector(ProjectionInfo.FromEpsgCode(4326),
+            ProjectionInfo.FromEpsgCode(options.Value.CommonAreaSrid));
     }
 
     [HttpGet("")]
@@ -67,5 +78,56 @@ public class AchievementController : ControllerBase
         {
             return NotFound();
         }
+    }
+
+    [Authorize(Roles = "Admin")]
+    [HttpPost("import")]
+    public async Task<ActionResult<IEnumerable<string>>> ImportAchievements([FromBody] JsonElement json)
+    {
+        var bodyString = json.GetRawText();
+        // var bodyString = await new StreamReader(HttpContext.Request.BodyReader.AsStream()).ReadToEndAsync();
+        var reader = new GeoJsonReader();
+        FeatureCollection? fc;
+        try
+        {
+            fc = reader.Read<FeatureCollection>(bodyString);
+        }
+        catch (JsonReaderException)
+        {
+            return BadRequest("bad GeoJSON body!");
+        }
+        
+        if (fc is null)
+        {
+            return BadRequest("could not read feature collection for unknown reason");
+        }
+
+        var achievements = fc.AsParallel().Select(FeatureToAchievement);
+        await _db.Achievements.AddRangeAsync(achievements);
+        await _db.SaveChangesAsync();
+        
+        return Ok(_db.Achievements.Select(x => x.Id));
+    }
+
+    private Achievement FeatureToAchievement(IFeature feat)
+    {
+        var maybeId = feat.Attributes.GetOptionalValue("id");
+        if (maybeId is not string id)
+        {
+            throw new InvalidDataException($"id attribute is not present or not an object; id={maybeId}");
+        }
+
+        var secretAttr = feat.Attributes.GetOptionalValue("secret");
+        var isSecret = secretAttr is "secret";
+
+        var geometry = feat.Geometry.Copy();
+        geometry.Apply(_reproject.Reversed());
+
+        return new Achievement
+        {
+            Id = id,
+            Target = geometry,
+            IsSecret = isSecret
+        };
     }
 }
