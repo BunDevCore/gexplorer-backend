@@ -111,6 +111,12 @@ public class GpxAreaExtractor
             }
         }
 
+        if (newCoords.Count == 1)
+        {
+            // linestring has just one point, fallback to making a zero-length linestring
+            newCoords.Add(fullLinestring.Coordinates[0]);
+        }
+
         return new LineString(newCoords.ToArray());
     }
 }
