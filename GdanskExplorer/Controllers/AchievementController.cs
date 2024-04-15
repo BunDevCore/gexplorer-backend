@@ -102,11 +102,18 @@ public class AchievementController : ControllerBase
             return BadRequest("could not read feature collection for unknown reason");
         }
 
-        var achievements = fc.AsParallel().Select(FeatureToAchievement);
-        await _db.Achievements.AddRangeAsync(achievements);
-        await _db.SaveChangesAsync();
+        try
+        {
+            var achievements = fc.AsParallel().Select(FeatureToAchievement);
+            await _db.Achievements.AddRangeAsync(achievements);
+            await _db.SaveChangesAsync();
         
-        return Ok(_db.Achievements.Select(x => x.Id));
+            return Ok(_db.Achievements.Select(x => x.Id));
+        }
+        catch (InvalidDataException e)
+        {
+            return BadRequest(e.Message);
+        }
     }
 
     private Achievement FeatureToAchievement(IFeature feat)
