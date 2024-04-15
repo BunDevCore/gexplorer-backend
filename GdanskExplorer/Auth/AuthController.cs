@@ -85,12 +85,20 @@ public partial class AuthController : ControllerBase
     {
         return Login(dto, true);
     }
+    
+    [HttpPost("v2/register")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public Task<IActionResult> LoginV2([FromBody] RegisterDto dto)
+    {
+        return Register(dto, true);
+    }
 
     [HttpPost("register")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
-    public async Task<IActionResult> Register([FromBody] RegisterDto dto)
+    public async Task<IActionResult> Register([FromBody] RegisterDto dto, bool wrapInObject = false)
     {
         if (!ModelState.IsValid)
         {
@@ -130,9 +138,15 @@ public partial class AuthController : ControllerBase
             return UnprocessableEntity(roleAddResult.Errors.Select(e => e.Code));
         }
         
-        return Ok(await NewJwt(newUser));
-
-        
+        var token = await NewJwt(newUser);
+        if (wrapInObject)
+        {
+            return Ok(new Dictionary<string, string>
+            {
+                {"token", token}
+            });
+        }
+        return Ok(token);
     }
 
     private async Task<string> NewJwt(User user)

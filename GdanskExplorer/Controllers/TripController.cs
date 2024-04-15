@@ -193,7 +193,7 @@ public class TripController : ControllerBase
 
 
     [HttpGet("starred")]
-    public async Task<ActionResult<DetailedTripReturnDto>> GetStarred()
+    public async Task<ActionResult<TripReturnDto>> GetStarred()
     {
         var user = await _userManager.GetUserAsync(User);
 
