@@ -135,7 +135,7 @@ public class AchievementController : ControllerBase
         var isSecret = secretAttr is "secret";
 
         var geometry = feat.Geometry.Copy();
-        geometry.Apply(_reproject.Reversed());
+        geometry.Apply(_reproject.InputSwizzled().InputSwizzled()); // huh /?????????? it ONLY works with TWO swizzles which should be IDENTICAL ?????????????????? THIS IS BLACK MAGIC AND ITS 3AM AND I WANT TO GO TO SLEEP
 
         return new Achievement
         {
