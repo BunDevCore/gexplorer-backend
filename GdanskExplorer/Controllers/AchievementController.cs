@@ -81,6 +81,7 @@ public class AchievementController : ControllerBase
         try
         {
             var userId = Guid.Parse(_userManager.GetUserId(User) ?? string.Empty);
+            await _db.Entry(achievement).Collection(x => x.AchievementGets).LoadAsync();
             if (achievement.AchievementGets.Any(x => x.UserId == userId))
             {
                 return Ok(_mapper.Map<AchievementDetailsDto>(achievement));
