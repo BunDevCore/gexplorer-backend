@@ -7,6 +7,7 @@ public class Trip
 {
     public Guid Id { get; set; }
     public User User { get; set; } = null!;
+    public Guid UserId { get; set; }
     public Polygon Polygon { get; set; } = null!;
     [Column(TypeName = "geography")]
     public Polygon GpsPolygon { get; set; } = null!;

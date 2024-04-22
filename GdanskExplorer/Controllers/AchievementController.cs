@@ -1,6 +1,8 @@
+using System.Collections.Immutable;
 using System.Text.Json;
 using AutoMapper;
 using DotSpatial.Projections;
+using GdanskExplorer.Achievements;
 using GdanskExplorer.Data;
 using GdanskExplorer.Dtos;
 using GdanskExplorer.Topology;
@@ -22,14 +24,19 @@ public class AchievementController : ControllerBase
     private readonly IMapper _mapper;
     private readonly UserManager<User> _userManager;
     private readonly DotSpatialReprojector _reproject;
+    private readonly AchievementManager _achievementManager;
+    private readonly ILogger<AchievementController> _logger;
 
 
     public AchievementController(GExplorerContext db, IMapper mapper, UserManager<User> userManager,
-        IOptions<AreaCalculationOptions> options)
+        IOptions<AreaCalculationOptions> options, AchievementManager achievementManager,
+        ILogger<AchievementController> logger)
     {
         _db = db;
         _mapper = mapper;
         _userManager = userManager;
+        _achievementManager = achievementManager;
+        _logger = logger;
         _reproject = new DotSpatialReprojector(ProjectionInfo.FromEpsgCode(4326),
             ProjectionInfo.FromEpsgCode(options.Value.CommonAreaSrid));
     }
@@ -92,33 +99,69 @@ public class AchievementController : ControllerBase
     public async Task<ActionResult<IEnumerable<string>>> ImportAchievements([FromBody] JsonElement json)
     {
         var bodyString = json.GetRawText();
-        // var bodyString = await new StreamReader(HttpContext.Request.BodyReader.AsStream()).ReadToEndAsync();
         var reader = new GeoJsonReader();
         FeatureCollection? fc;
         try
         {
             fc = reader.Read<FeatureCollection>(bodyString);
         }
-        catch (JsonReaderException)
+        catch (JsonReaderException e)
         {
+            _logger.LogError("bad geojson submitted to achievement import, {Exception}", e);
             return BadRequest("bad GeoJSON body!");
         }
 
         if (fc is null)
         {
+            _logger.LogError("achievement import feature collection read failed for unknown reason!");
             return BadRequest("could not read feature collection for unknown reason");
         }
 
         try
         {
-            var achievements = fc.AsParallel().Select(FeatureToAchievement);
-            await _db.Achievements.AddRangeAsync(achievements);
-            await _db.SaveChangesAsync();
+            await using var tx = await _db.Database.BeginTransactionAsync();
+            var achievements = fc.AsParallel().Select(FeatureToAchievement).ToList();
+            var dbAchievements = await _db.Achievements.ToListAsync();
+            // there could be a hashset of achievement names but for how many achievements there actually are in the db this would be just unnecessary complexity
 
+            foreach (var achievement in achievements)
+            {
+                if (dbAchievements.FirstOrDefault(x => x.Id == achievement.Id) is { } a)
+                {
+                    a.IsSecret = achievement.IsSecret;
+                    a.Target = achievement.Target;
+                }
+                else
+                {
+                    _db.Achievements.Add(achievement);
+                }
+            }
+
+            await _db.SaveChangesAsync();
+            _logger.LogInformation("New achievements successfully saved to db!");
+
+            var users = await _db.Users.ToListAsync();
+            _logger.LogInformation("recomputing achievements for all users... {NumChecks} to do",
+                achievements.Count * users.Count);
+
+            var achievementGets = users.AsParallel().SelectMany(user =>
+                {
+                    _logger.LogDebug("recomputing achievements for {User}", user.UserName);
+                    return _achievementManager.CheckUserUnchecked(achievements, user);
+                }
+            );
+
+            var allGets = _db.AchievementGets.Select(x => new { x.UserId, x.AchievementId }).ToImmutableHashSet();
+            _db.AchievementGets.AddRange(achievementGets
+                .Where(ag => !allGets.Contains(new {ag.UserId, ag.AchievementId})));
+
+            await _db.SaveChangesAsync();
+            await tx.CommitAsync();
             return Ok(_db.Achievements.Select(x => x.Id));
         }
         catch (InvalidDataException e)
         {
+            _logger.LogError("error converting feature to achievement, {Exception}", e);
             return BadRequest(e.Message);
         }
     }
@@ -135,7 +178,8 @@ public class AchievementController : ControllerBase
         var isSecret = secretAttr is "secret";
 
         var geometry = feat.Geometry.Copy();
-        geometry.Apply(_reproject.InputSwizzled().InputSwizzled()); // huh /?????????? it ONLY works with TWO swizzles which should be IDENTICAL ?????????????????? THIS IS BLACK MAGIC AND ITS 3AM AND I WANT TO GO TO SLEEP
+        geometry.Apply(_reproject.InputSwizzled()
+            .InputSwizzled()); // huh /?????????? it ONLY works with TWO swizzles which should be IDENTICAL ?????????????????? THIS IS BLACK MAGIC AND ITS 3AM AND I WANT TO GO TO SLEEP
 
         return new Achievement
         {

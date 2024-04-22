@@ -8,7 +8,7 @@ public class AchievementGet
     public User User { get; set; } = null!;
     public DateTime TimeAchieved { get; set; }
 
-    public Trip AchievedOnTrip { get; set; } = null!;
+    public Trip? AchievedOnTrip { get; set; } = null!;
     
-    public Guid AchievedOnTripId { get; set; }
+    public Guid? AchievedOnTripId { get; set; }
 }

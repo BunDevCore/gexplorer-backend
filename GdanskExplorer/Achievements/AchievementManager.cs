@@ -18,7 +18,13 @@ public class AchievementManager
 
     public async Task<Achievement?> GetEntity(string id) => await _db.Achievements.FindAsync(id);
 
-    public IEnumerable<AchievementGet> CheckUser(List<Achievement> achievements, User user)
+    /// <summary>
+    /// Caller's responsibility to ensure that none of the achievements here have already been gotten!
+    /// </summary>
+    /// <param name="achievements">list of achievements to check against</param>
+    /// <param name="user">user being checked</param>
+    /// <returns>IEnumerable of AchievementGets which *do not have AchievedOnTripId* set!</returns>
+    public IEnumerable<AchievementGet> CheckUserUnchecked(List<Achievement> achievements, User user)
     {
         // plain geometry achievements, do not need to go through any possible custom logic and can just call ToIAchievable to avoid additional queries
         var geometryAchievements = achievements
@@ -45,6 +51,11 @@ public class AchievementManager
             TimeAchieved = DateTime.UtcNow,
             UserId = user.Id
         });
+    }
+
+    public IEnumerable<AchievementGet> CheckUser(User user)
+    {
+        return CheckUserUnchecked(_db.Achievements.Where(x => !user.Achievements.Contains(x)).ToList(), user);
     }
     
     public IEnumerable<AchievementGet> CheckTrip(List<Achievement> achievements, Trip trip)

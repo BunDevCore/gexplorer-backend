@@ -61,7 +61,7 @@ public class DistrictController : ControllerBase
             {
                 await _db.Districts.ExecuteDeleteAsync();
             }
-            await _db.Districts.AddRangeAsync(dbDistricts);
+            _db.Districts.AddRange(dbDistricts);
             await _db.SaveChangesAsync();
         }
         catch (JsonReaderException)

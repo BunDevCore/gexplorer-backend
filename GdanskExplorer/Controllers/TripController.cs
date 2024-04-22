@@ -160,23 +160,23 @@ public class TripController : ControllerBase
             }
 
             // add new ones
-            await _db.AddRangeAsync(newAreaCacheEntries);
+            _db.AddRange(newAreaCacheEntries);
 
 
             // save all trips
-            await _db.AddRangeAsync(dbTrips);
+            _db.AddRange(dbTrips);
 
             // achievement check
             await _db.Entry(user).Collection<Achievement>(x => x.Achievements).LoadAsync();
             var remainingAchievements = _db.Achievements.Where(a => !user.Achievements.Contains(a)).ToList();
 
-            var newAchievements = _achievementMgr.CheckUser(remainingAchievements, user).Select(
+            var newAchievements = _achievementMgr.CheckUserUnchecked(remainingAchievements, user).Select(
                 x =>
                 {
                     x.AchievedOnTripId = dbTrips.Last().Id;
                     return x;
                 }).ToList();
-            await _db.AddRangeAsync(newAchievements);
+            _db.AddRange(newAchievements);
 
             await _db.SaveChangesAsync();
             return Ok(_mapper.Map<IEnumerable<TripReturnDto>>(dbTrips));
@@ -219,7 +219,8 @@ public class TripController : ControllerBase
 
         // load user separately instead of through .Include on the top level IQueryable because i can't be bothered to implement SimplifyUser properly
         // so it works with non User IQueryables
-        var user = await _db.Entry(trip).Reference(x => x.User).Query().SimplifyUser().FirstAsync();
+        var user = await _db.Users.FirstOrDefaultAsync(x => x.Id == trip.UserId);
+        if (user == null) throw new NullReferenceException();
         _logger.LogDebug("got trip owner = {User}", user);
         trip.User = user;
 

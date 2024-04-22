@@ -29,28 +29,29 @@ public class UserController : ControllerBase
     //TODO: this code is really stinky, why?
     private async Task<ActionResult<UserReturnDto>> HandleSearch(Expression<Func<User, bool>> condition)
     {
-        var user = await _db.Users
-                    .Include(x =>
-                        x.Trips.OrderByDescending(t => t.UploadTime))
-                    .Include(x => x.DistrictAreas)
-                    .Include(x => x.Achievements)
-                    .SimplifyUser()
-                    .Where(condition)
-                    .FirstOrDefaultAsync();
-                
+        var user = await _db.Users.Where(condition).FirstOrDefaultAsync();
+
+
+        if (user is null)
+        {
+            return NotFound();
+        }
+
+        await _db.Entry(user).Collection(x => x.DistrictAreas).LoadAsync();
+        await _db.Entry(user).Collection(x => x.Trips).LoadAsync();
+        await _db.Entry(user).Collection(x => x.Achievements).LoadAsync();
+        await _db.Entry(user).Collection(x => x.AchievementGets).LoadAsync();
         
-                if (user is null)
-                {
-                    return NotFound();
-                }
-                
-                foreach (var trip in user.Trips)
-                {
-                    trip.User = user;
-                    _db.Entry(trip).State = EntityState.Unchanged; // make ef think nothing has changed because, well, it hasn't and i just know better, this all arises from SimplifyUser because i do not want the whole polygon loaded here
-                }
-                
-                return Ok(_mapper.Map<UserReturnDto>(user));
+
+        foreach (var trip in user.Trips)
+        {
+            trip.User = user;
+            _db.Entry(trip).State =
+                EntityState
+                    .Unchanged; // make ef think nothing has changed because, well, it hasn't and i just know better, this all arises from SimplifyUser because i do not want the whole polygon loaded here
+        }
+
+        return Ok(_mapper.Map<UserReturnDto>(user));
     }
 
     [HttpGet("{username}")]
@@ -70,13 +71,13 @@ public class UserController : ControllerBase
         {
             return NotFound();
         }
-        
+
         // ReSharper disable once EntityFramework.NPlusOne.IncompleteDataUsage
         var poly = user.OverallArea.Copy();
         poly.Apply(_reproject.Reversed());
         return Ok(poly);
     }
-    
+
     [HttpGet("id/{username}/polygon")]
     public async Task<ActionResult<Geometry>> GetPolygonForUsername(string username)
     {
@@ -86,7 +87,7 @@ public class UserController : ControllerBase
         {
             return NotFound();
         }
-        
+
         // ReSharper disable once EntityFramework.NPlusOne.IncompleteDataUsage
         var poly = user.OverallArea.Copy();
         poly.Apply(_reproject.Reversed());
