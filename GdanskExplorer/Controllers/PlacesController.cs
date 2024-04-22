@@ -28,7 +28,7 @@ public class PlacesController : ControllerBase
     public async Task<ActionResult<IEnumerable<PlaceStateReturnDto>>> GetOwnPlaceStates()
     {
         var userId = _userManager.GetUserId(User)!;
-        var user = await _db.Users.Include(x => x.Places).SimplifyUser()
+        var user = await _db.Users.Include(x => x.PlaceRows).SimplifyUser()
             .Where(x => x.Id == Guid.Parse(userId)).FirstOrDefaultAsync();
         if (user == null) return Unauthorized();
 
@@ -40,7 +40,7 @@ public class PlacesController : ControllerBase
     public async Task<ActionResult<IEnumerable<PlaceStateReturnDto>>> GetPlaceStatesById(string id)
     {
         var userId = _userManager.GetUserId(User)!;
-        var user = await _db.Users.Include(x => x.Places).SimplifyUser()
+        var user = await _db.Users.Include(x => x.PlaceRows).SimplifyUser()
             .Where(x => x.Id == Guid.Parse(userId)).FirstOrDefaultAsync();
         if (user == null) return Unauthorized();
         

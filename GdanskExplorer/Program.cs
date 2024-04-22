@@ -13,7 +13,6 @@ using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.SwaggerUI;
-using Zomp.EFCore.WindowFunctions.Npgsql;
 
 var builder = WebApplication.CreateBuilder(args);
 

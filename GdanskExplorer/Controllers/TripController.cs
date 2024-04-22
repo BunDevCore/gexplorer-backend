@@ -181,7 +181,7 @@ public class TripController : ControllerBase
             await _db.SaveChangesAsync();
             return Ok(_mapper.Map<IEnumerable<TripReturnDto>>(dbTrips));
         }
-        catch (XmlException e)
+        catch (XmlException)
         {
             return BadRequest(_mapper.Map<GpxImportErrorDto>(GpxImportErrorKind.SyntaxError));
         }
