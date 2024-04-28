@@ -110,6 +110,7 @@ builder.Services.AddSingleton<GpxAreaExtractor>(isp => new GpxAreaExtractor(
     isp.GetRequiredService<IOptions<AreaCalculationOptions>>().Value, isp.GetRequiredService<ILogger<GpxAreaExtractor>>()));
 
 builder.Services.AddScoped<AchievementManager>();
+builder.Services.AddScoped<TripManager>();
 
 builder.Services.AddAutoMapper(typeof(GExplorerAutoMapperProfile));
 
