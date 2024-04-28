@@ -104,7 +104,7 @@ public class TripController : ControllerBase
         try
         {
             var newTrips = await _tripManager.AddTrip(user, newTrip);
-            return Ok(_mapper.Map<TripReturnDto>(newTrips));
+            return Ok(_mapper.Map<List<TripReturnDto>>(newTrips));
         }
         catch (XmlException)
         {
